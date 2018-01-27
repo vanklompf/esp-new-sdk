@@ -1,0 +1,14 @@
+comp_libs/*
+tarballs/*
+sdk/*
+src/*
+distrib/*
+!src/patches
+xtensa*
+backup
+*.log
+*.txt
+*.tar.gz
+*.sh
+.travis*
+!.travis.yml

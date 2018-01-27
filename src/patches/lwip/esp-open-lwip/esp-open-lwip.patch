@@ -1,0 +1,25 @@
+diff --git a/Makefile.open.orig b/Makefile.open
+index 230e006..a6816aa 100644
+--- a/Makefile.open.orig
++++ b/Makefile.open
+@@ -2,9 +2,9 @@ CC = xtensa-lx106-elf-gcc
+ AR = xtensa-lx106-elf-ar
+ DEFS = -DLWIP_OPEN_SRC -DPBUF_RSV_FOR_WLAN -DEBUF_LWIP -DICACHE_FLASH -DMEMCPY=memcpy -DSMEMCPY=memcpy
+ COPT = -Os
+-CFLAGS = $(DEFS) $(COPT) -Iinclude -Wl,-EL -mlongcalls -mtext-section-literals -mforce-l32 $(CFLAGS_EXTRA)
++CFLAGS = $(DEFS) $(COPT) -Iinclude -Wl,-EL -mlongcalls -mtext-section-literals $(CFLAGS_EXTRA)
+ # Install prefix of esp-open-sdk toolchain
+-PREFIX = ~/toolchain/xtensa-lx106-elf
++PREFIX = $(toolchain)/xtensa-lx106-elf
+ 
+ 
+ OBJS = \
+@@ -49,7 +49,7 @@ $(LIB): $(OBJS)
+ 	$(AR) rcs $@ $^
+ 
+ install: $(LIB)
+-	cp $(LIB) $(PREFIX)/xtensa-lx106-elf/sysroot/usr/lib/
++	cp $(LIB) $(PREFIX)/xtensa-lx106-elf/lib/
+ 
+ clean:
+ 	rm -f $(OBJS) $(LIB)

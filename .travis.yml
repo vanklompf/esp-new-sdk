@@ -1,0 +1,96 @@
+sudo: false
+language: cpp
+stages: 
+  - Test
+  - Osx-build-2
+jobs:
+  include:
+    - os: linux
+      dist: trusty
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - bsdtar
+            - gperf
+            - texinfo
+            - help2man
+            - gcc-multilib
+            - g++-multilib
+      script:
+        - echo -e "travis_fold:start:install-automake"
+        - cd $TRAVIS_BUILD_DIR
+        - wget -cq http://ftp.gnu.org/gnu/automake/automake-1.15.tar.xz; tar xf automake-1.15.tar.xz; rm automake-1.15.tar.xz
+        - cd automake-1.15; ./configure -q --prefix=/usr && make V=0; sudo make V=0 install; cd ..; rm -fR automake-1.15
+        - echo -e "travis_fold:end:install-automake"
+        - cd $TRAVIS_BUILD_DIR
+        - make info-start
+        - make build-bins
+        - travis_wait 25 make build-gcc-1
+        - make build-newlib
+        - travis_wait 35 make build-gcc-2
+        - make build-libhal
+        - make build-libraries
+        - make distrib
+      cache: false
+    - os: osx
+      script:
+        - cd $TRAVIS_BUILD_DIR
+        - make info-start
+        - make build-bins
+        - travis_wait 25 make build-gcc-1
+        - make build-newlib
+        - make get-gcc-src-dir #prefetch for Osx-build-2
+      cache:
+        timeout: 2000
+        directories:
+          - comp_libs/
+          - src/
+          - xtensa-lx106-elf/
+          - tarballs/
+      deploy: false
+    - stage: Osx-build-2
+      os: osx
+      script:
+        - cd $TRAVIS_BUILD_DIR
+        - ls -la src tarballs
+        - mkdir -p distrib # needed for log-files
+        - travis_wait 45 make build-gcc-2
+        - make build-libhal
+        - make build-libraries
+        - make distrib
+      before_cache: # caching is after the script
+        # so we don't need them to delete
+        - mv comp_libs comp_old
+        - mv src src_old
+      cache:
+        timeout: 2000
+        directories:
+          - comp_libs/
+          - src/
+          - xtensa-lx106-elf/
+          - tarballs/
+before_install:
+  # unset is needed for libhal
+  - test -n $CC  && unset CC
+  - test -n $CXX && unset CXX
+before_deploy:
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then DEPLOY_FILE=Linux-64-xtensa-lx106-elf.tar.gz; fi
+  - if [ "$TRAVIS_OS_NAME" == "osx"   ]; then DEPLOY_FILE=MacOS-64-xtensa-lx106-elf.tar.gz; fi
+deploy:
+      provider: releases
+      api_key: $DeployToken
+      overwrite: true
+      file_glob: true
+      file: distrib/* #$DEPLOY_FILE
+      skip_cleanup: true
+      on:
+        branches:
+          only:
+            - master
+            - /v\d+\.\d+[a-z]/
+        repo: Juppit/esp-new-sdk
+        tags: true
+notifications:
+  email: false
