@@ -6,7 +6,7 @@
 # Credits to Paul Sokolovsky (@pfalcon) for esp-open-sdk
 # Credits to Ivan Grokhotkov (@igrr) compiler options (NLX_OPT) and library modifications
 #
-# Last edit: 25.01.2018
+# Last edit: 28.01.2018
 
 #*******************************************
 #************** configuration **************

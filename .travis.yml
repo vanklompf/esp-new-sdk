@@ -60,6 +60,7 @@ jobs:
         - make build-libhal
         - make build-libraries
         - make distrib
+        - ls -la src tarballs
       before_cache: # caching is after the script
         # so we don't need them to delete
         - mv comp_libs comp_old

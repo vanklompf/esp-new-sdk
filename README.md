@@ -63,12 +63,12 @@ If configured you can build additional libraries with:
   ```
 
 To rebuild one of the above parts it should be enough to:
-- delete the corresponding file <.xxx.loaded> from 'src' directory, for example 'src/mpc.loaded'.
+- delete the corresponding file <src/.xxx.loaded> from 'src' directory, for example <src/.mpc.loaded>.
 
-Note: build directories are named after the operating system, for example 'build-Cygwin64'
+Note: build directories are named after the operating system, for example <build-Cygwin64>
 
 To clean the build system use the following commands:
 ```bash
-  make clean            # removes all build directories and <.installed-xxx> marker
+  make clean            # removes all build directories and <.xxx.installed> marker
   make purge            # removes additionally the source directories
 ```
