@@ -444,7 +444,7 @@ all:
 	@$(MAKE_OPT) build-gcc-2 2>>$(ERROR_LOG)
 	@$(MAKE_OPT) build-$(HAL) 2>>$(ERROR_LOG)
 	@$(MAKE_OPT) build-tools 2>>$(ERROR_LOG)
-	@$(MAKE_OPT) build-sdk 2>>$(ERROR_LOG)
+	@$(MAKE_OPT) build-sdk-libs 2>>$(ERROR_LOG)
 	@$(MAKE_OPT) info
 	@cat build-start.txt; rm build-start.txt
 	@$(MAKE_OPT) distrib
@@ -460,9 +460,10 @@ install:
 #************* single builds ***************
 #*******************************************
 
-build: build-bins build-$(GCC)-1 build-$(NLX) build-$(GCC)-2 build-$(HAL) build-sdk
+build: build-bins build-$(GCC)-1 build-$(NLX) build-$(GCC)-2 build-$(HAL) build-sdk-libs
 build-bins: $(TOOLCHAIN) build-$(CURSES) build-$(GMP) build-$(MPFR) build-$(ISL) build-$(CLOOG) build-$(MPC) build-$(EXPAT) build-$(BIN)
-build-sdk: build-$(SDK) build-sdk-libs
+###build-sdk: build-$(SDK) build-sdk-libs
+###build-sdk: build-sdk-libs
 build-tools: build-$(GDB) build-$(LWIP) strip compress
 
 # prefetch for travis Osx-build-2
@@ -541,8 +542,8 @@ build-$(GCC)-2:  $(SOURCE_DIR)/.$(NLX).installed $(SOURCE_DIR)/.$(GCC)-pass-2.in
 build-$(HAL):    $(SOURCE_DIR)/.$(GCC)-pass-2.installed $(SOURCE_DIR)/.$(HAL).installed
 #build-$(GDB):    $(SOURCE_DIR)/.$(GCC)-pass-2.installed $(SOURCE_DIR)/.$(GDB).installed
 #build-$(LWIP):   $(SOURCE_DIR)/.$(LWIP).installed
-build-$(SDK):    $(SOURCE_DIR)/.$(SDK).installed
-build-sdk-libs:  $(SOURCE_DIR)/.sdk-libs.installed
+###build-$(SDK):    $(SOURCE_DIR)/.$(SDK).installed
+build-sdk-libs:  $(SOURCE_DIR)/.$(SDK).installed $(SOURCE_DIR)/.sdk-libs.installed
 
 build-$(CURSES): $(TOOLCHAIN)
 ifeq ($(USE_CURSES),y)

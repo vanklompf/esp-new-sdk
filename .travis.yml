@@ -31,7 +31,7 @@ jobs:
         - make build-newlib
         - travis_wait 35 make build-gcc-2
         - make build-libhal
-        - make build-sdk
+        - make build-sdk-libs
         - travis_wait 15 make build-tools
         - make distrib
       cache: false
@@ -59,7 +59,7 @@ jobs:
         - mkdir -p distrib # needed for log-files
         - travis_wait 45 make build-gcc-2
         - make build-libhal
-        - make build-sdk
+        - make build-sdk-libs
         - travis_wait 15 make build-tools
         - make distrib
         - ls -la src tarballs
