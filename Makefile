@@ -6,7 +6,7 @@
 # Credits to Paul Sokolovsky (@pfalcon) for esp-open-sdk
 # Credits to Ivan Grokhotkov (@igrr) compiler options (NLX_OPT) and library modifications
 #
-# Last edit: 28.01.2018
+# Last edit: 01.02.2018
 
 #*******************************************
 #************** configuration **************
@@ -31,7 +31,7 @@ USE_EXPAT = n
 # The Chunky Loop Generator
 USE_CLOOG = n
 # build debugger
-USE_GDB = n
+USE_GDB = y
 
 PLATFORM := $(shell uname -s)
 ifneq (,$(findstring 64, $(shell uname -m)))
@@ -105,6 +105,7 @@ MPFR_VERSION = 3.1.3
 MPFR_VERSION = 3.1.4
 MPFR_VERSION = 3.1.5
 MPFR_VERSION = 3.1.6
+#MPFR_VERSION = 4.0.0
 
 MPC_VERSION  = 1.0.1
 MPC_VERSION  = 1.0.2
@@ -270,6 +271,7 @@ ISL_TAR = $(TAR_DIR)/$(ISL)-$(ISL_VERSION).tar.bz2
 ISL_TAR_DIR = $(ISL)-$(ISL_VERSION)
 
 CLOOG = CLooG
+CLOOG = cloog
 CLOOG_DIR = $(SOURCE_DIR)/$(CLOOG)-$(CLOOG_VERSION)
 BUILD_CLOOG_DIR = $(CLOOG_DIR)/$(BUILD_DIR)
 CLOOG_URL = http://www.bastoul.net/cloog/pages/download/$(CLOOG)-$(CLOOG_VERSION).tar.gz
@@ -340,12 +342,12 @@ else
 	OCP_REDEF:= --redefine-sym
 endif
 
-WITH_GMP  = --with-$(GMP)=$(COMP_LIB)/$(GMP)
-WITH_MPFR = --with-$(MPFR)=$(COMP_LIB)/$(MPFR)
-WITH_MPC  = --with-$(MPC)=$(COMP_LIB)/$(MPC)
+WITH_GMP  = --with-$(GMP)=$(COMP_LIB)/$(GMP)-$(GMP_VERSION)
+WITH_MPFR = --with-$(MPFR)=$(COMP_LIB)/$(MPFR)-$(MPFR_VERSION)
+WITH_MPC  = --with-$(MPC)=$(COMP_LIB)/$(MPC)-$(MPC_VERSION)
 WITH_NLX  = --with-$(NLX)
-WITH_ISL  = --with-$(ISL)=$(COMP_LIB)/$(ISL)
-WITH_CLOOG= --with-$(CLOOG)=$(COMP_LIB)/$(CLOOG)
+WITH_ISL  = --with-$(ISL)=$(COMP_LIB)/$(ISL)-$(ISL_VERSION)
+WITH_CLOOG= --with-$(CLOOG)=$(COMP_LIB)/$(CLOOG)-$(CLOOG_VERSION)
 
 GMP_OPT   = --disable-shared --enable-static
 MPFR_OPT  = --disable-shared --enable-static
@@ -505,11 +507,11 @@ $(TAR_DIR):
 
 $(COMP_LIB):
 	@$(MKDIR) $(COMP_LIB)
-	@$(MKDIR) $(COMP_LIB)/$(GMP)
-	@$(MKDIR) $(COMP_LIB)/$(MPFR)
-	@$(MKDIR) $(COMP_LIB)/$(MPC)
-	@$(MKDIR) $(COMP_LIB)/$(ISL)
-	@$(MKDIR) $(COMP_LIB)/$(CLOOG)
+	@$(MKDIR) $(COMP_LIB)/$(GMP)-$(GMP_VERSION)
+	@$(MKDIR) $(COMP_LIB)/$(MPFR)-$(MPFR_VERSION)
+	@$(MKDIR) $(COMP_LIB)/$(MPC)-$(MPC_VERSION)
+	@$(MKDIR) $(COMP_LIB)/$(ISL)-$(ISL_VERSION)
+	@$(MKDIR) $(COMP_LIB)/$(CLOOG)-$(CLOOG_VERSION)
 
 $(DIST_DIR):
 	@$(MKDIR) $(DIST_DIR)
@@ -761,7 +763,7 @@ define Load_Modul
 	@$(MKDIR) $(TAR_DIR)
 	@if ! test -s $3; then echo "##########################"; fi
 	@if ! test -s $3; then echo "#### Load $1..."; fi
-	@if ! test -s $3; then $(WGET) $2 --output-document $3 && $(RM) $(SOURCE_DIR)/.$1.*ed; fi
+	if ! test -s $3; then $(WGET) $2 --output-document $3 && $(RM) $(SOURCE_DIR)/.$1.*ed; fi
 	@touch $(SOURCE_DIR)/.$1.loaded
 endef
 
@@ -781,7 +783,7 @@ define Config_Modul
 	@if ! test -f $(SOURCE_DIR)/.$1.patched; then $(MAKE_OPT) $1_patch && touch $(SOURCE_DIR)/.$1.patched; fi
 	@$(MKDIR) $2
 	#### Config: Path=$(SAFEPATH); cd $2 ../$(CONF_OPT) $3 $4
-	@PATH=$(SAFEPATH); cd $2; ../$(CONF_OPT) $3 $4 $(QUIET)
+	PATH=$(SAFEPATH); cd $2; ../$(CONF_OPT) $3 $4 $(QUIET)
 	@touch $(SOURCE_DIR)/.$1.configured
 endef
 
@@ -789,18 +791,18 @@ define Build_Modul
 	@echo "##########################"
 	@echo "#### Build $1..."
 	#### Build: Path=$(SAFEPATH); $3 $(MAKE_OPT) $4 -C $2
-	@PATH=$(SAFEPATH); $3 $(MAKE_OPT) $4 -C $2 $(QUIET) 
+	PATH=$(SAFEPATH); $3 $(MAKE_OPT) $4 -C $2 $(QUIET) 
 	@touch $(SOURCE_DIR)/.$1.builded
 endef
 
 define Install_Modul
-	@echo "##########################"
-	@echo "#### Install $1..."
-	@echo "##########################"
+	echo "##########################"
+	echo "#### Install $1..."
+	echo "##########################"
 	#### "Install: Path=$(SAFEPATH); $(MAKE_OPT) $3=$(INST_OPT) -C $2"
-	@PATH=$(SAFEPATH); $(MAKE_OPT) $3 -C $2 $(QUIET)
-	@touch $(SOURCE_DIR)/.$1.installed
-	@$(OUTPUT_DATE)
+	PATH=$(SAFEPATH); $(MAKE_OPT) $3 -C $2 $(QUIET)
+	touch $(SOURCE_DIR)/.$1.installed
+	$(OUTPUT_DATE)
 endef
 
 #************** CURSES
@@ -809,7 +811,7 @@ $(SOURCE_DIR)/.$(CURSES).loaded: $(TAR_DIR)
 $(SOURCE_DIR)/.$(CURSES).extracted: $(SOURCE_DIR)/.$(CURSES).loaded
 	$(call Extract_Modul,$(CURSES),$(CURSES_DIR),$(CURSES_TAR),$(CURSES_DIR)/$(CURSES_TAR_DIR))
 $(SOURCE_DIR)/.$(CURSES).configured: $(SOURCE_DIR)/.$(CURSES).extracted
-	$(call Config_Modul,$(CURSES),$(BUILD_CURSES_DIR),--prefix=$(COMP_LIB)/$(CURSES),$(CURSES_OPT))
+	$(call Config_Modul,$(CURSES),$(BUILD_CURSES_DIR),--prefix=$(COMP_LIB)/$(CURSES)-$(CURSES_VERSION),$(CURSES_OPT))
 $(SOURCE_DIR)/.$(CURSES).builded: $(SOURCE_DIR)/.$(CURSES).configured
 	$(call Build_Modul,$(CURSES),$(BUILD_CURSES_DIR))
 $(SOURCE_DIR)/.$(CURSES).installed: $(SOURCE_DIR)/.$(CURSES).builded
@@ -821,7 +823,7 @@ $(SOURCE_DIR)/.$(GMP).loaded: $(TAR_DIR)
 $(SOURCE_DIR)/.$(GMP).extracted: $(SOURCE_DIR)/.$(GMP).loaded
 	$(call Extract_Modul,$(GMP),$(GMP_DIR),$(GMP_TAR),$(GMP_DIR)/$(GMP_TAR_DIR))
 $(SOURCE_DIR)/.$(GMP).configured: $(SOURCE_DIR)/.$(GMP).extracted
-	$(call Config_Modul,$(GMP),$(BUILD_GMP_DIR),--prefix=$(COMP_LIB)/$(GMP),$(GMP_OPT))
+	$(call Config_Modul,$(GMP),$(BUILD_GMP_DIR),--prefix=$(COMP_LIB)/$(GMP)-$(GMP_VERSION),$(GMP_OPT))
 $(SOURCE_DIR)/.$(GMP).builded: $(SOURCE_DIR)/.$(GMP).configured
 	$(call Build_Modul,$(GMP),$(BUILD_GMP_DIR))
 $(SOURCE_DIR)/.$(GMP).installed: $(SOURCE_DIR)/.$(GMP).builded
@@ -833,7 +835,7 @@ $(SOURCE_DIR)/.$(MPFR).loaded: $(TAR_DIR)
 $(SOURCE_DIR)/.$(MPFR).extracted: $(SOURCE_DIR)/.$(MPFR).loaded
 	$(call Extract_Modul,$(MPFR),$(MPFR_DIR),$(MPFR_TAR),$(MPFR_DIR)/$(MPFR_TAR_DIR))
 $(SOURCE_DIR)/.$(MPFR).configured: $(SOURCE_DIR)/.$(MPFR).extracted
-	$(call Config_Modul,$(MPFR),$(BUILD_MPFR_DIR),--prefix=$(COMP_LIB)/$(MPFR) -with-$(GMP)=$(COMP_LIB)/$(GMP),$(MPFR_OPT))
+	$(call Config_Modul,$(MPFR),$(BUILD_MPFR_DIR),--prefix=$(COMP_LIB)/$(MPFR)-$(MPFR_VERSION) -with-$(GMP)=$(COMP_LIB)/$(GMP)-$(GMP_VERSION),$(MPFR_OPT))
 $(SOURCE_DIR)/.$(MPFR).builded: $(SOURCE_DIR)/.$(MPFR).configured
 	$(call Build_Modul,$(MPFR),$(BUILD_MPFR_DIR))
 $(SOURCE_DIR)/.$(MPFR).installed: $(SOURCE_DIR)/.$(MPFR).builded
@@ -845,7 +847,7 @@ $(SOURCE_DIR)/.$(MPC).loaded: $(TAR_DIR)
 $(SOURCE_DIR)/.$(MPC).extracted: $(SOURCE_DIR)/.$(MPC).loaded
 	$(call Extract_Modul,$(MPC),$(MPC_DIR),$(MPC_TAR),$(MPC_DIR)/$(MPC_TAR_DIR))
 $(SOURCE_DIR)/.$(MPC).configured: $(SOURCE_DIR)/.$(MPC).extracted
-	$(call Config_Modul,$(MPC),$(BUILD_MPC_DIR),--prefix=$(COMP_LIB)/$(MPC) -with-$(MPFR)=$(COMP_LIB)/$(MPFR) -with-$(GMP)=$(COMP_LIB)/$(GMP),$(MPC_OPT))
+	$(call Config_Modul,$(MPC),$(BUILD_MPC_DIR),--prefix=$(COMP_LIB)/$(MPC)-$(MPC_VERSION) -with-$(MPFR)=$(COMP_LIB)/$(MPFR)-$(MPFR_VERSION) -with-$(GMP)=$(COMP_LIB)/$(GMP)-$(GMP_VERSION),$(MPC_OPT))
 $(SOURCE_DIR)/.$(MPC).builded: $(SOURCE_DIR)/.$(MPC).configured
 	$(call Build_Modul,$(MPC),$(BUILD_MPC_DIR))
 $(SOURCE_DIR)/.$(MPC).installed: $(SOURCE_DIR)/.$(MPC).builded
@@ -857,7 +859,7 @@ $(SOURCE_DIR)/.$(EXPAT).loaded: $(TAR_DIR)
 $(SOURCE_DIR)/.$(EXPAT).extracted: $(SOURCE_DIR)/.$(EXPAT).loaded
 	$(call Extract_Modul,$(EXPAT),$(EXPAT_DIR),$(EXPAT_TAR),$(EXPAT_DIR)/$(EXPAT_TAR_DIR))
 $(SOURCE_DIR)/.$(EXPAT).configured: $(SOURCE_DIR)/.$(EXPAT).extracted
-	$(call Config_Modul,$(EXPAT),$(BUILD_EXPAT_DIR),--prefix=$(COMP_LIB)/$(EXPAT),$(EXPAT_OPT))
+	$(call Config_Modul,$(EXPAT),$(BUILD_EXPAT_DIR),--prefix=$(COMP_LIB)/$(EXPAT)-$(EXPAT_VERSION),$(EXPAT_OPT))
 $(SOURCE_DIR)/.$(EXPAT).builded: $(SOURCE_DIR)/.$(EXPAT).configured
 	$(call Build_Modul,$(EXPAT),$(BUILD_EXPAT_DIR))
 $(SOURCE_DIR)/.$(EXPAT).installed: $(SOURCE_DIR)/.$(EXPAT).builded
@@ -881,7 +883,7 @@ $(SOURCE_DIR)/.$(ISL).loaded: $(TAR_DIR)
 $(SOURCE_DIR)/.$(ISL).extracted: $(SOURCE_DIR)/.$(ISL).loaded
 	$(call Extract_Modul,$(ISL),$(ISL_DIR),$(ISL_TAR),$(ISL_DIR)/$(ISL_TAR_DIR))
 $(SOURCE_DIR)/.$(ISL).configured: $(SOURCE_DIR)/.$(ISL).extracted
-	$(call Config_Modul,$(ISL),$(BUILD_ISL_DIR),--prefix=$(COMP_LIB)/$(ISL),$(ISL_OPT))
+	$(call Config_Modul,$(ISL),$(BUILD_ISL_DIR),--prefix=$(COMP_LIB)/$(ISL)-$(ISL_VERSION),$(ISL_OPT))
 $(SOURCE_DIR)/.$(ISL).builded: $(SOURCE_DIR)/.$(ISL).configured
 	$(call Build_Modul,$(ISL),$(BUILD_ISL_DIR))
 $(SOURCE_DIR)/.$(ISL).installed: $(SOURCE_DIR)/.$(ISL).builded
@@ -893,7 +895,7 @@ $(SOURCE_DIR)/.$(CLOOG).loaded: $(TAR_DIR)
 $(SOURCE_DIR)/.$(CLOOG).extracted: $(SOURCE_DIR)/.$(CLOOG).loaded
 	$(call Extract_Modul,$(CLOOG),$(CLOOG_DIR),$(CLOOG_TAR),$(CLOOG_DIR)/$(CLOOG_TAR_DIR))
 $(SOURCE_DIR)/.$(CLOOG).configured: $(SOURCE_DIR)/.$(CLOOG).extracted
-	$(call Config_Modul,$(CLOOG),$(BUILD_CLOOG_DIR),--prefix=$(COMP_LIB)/$(CLOOG),$(CLOOG_OPT))
+	$(call Config_Modul,$(CLOOG),$(BUILD_CLOOG_DIR),--prefix=$(COMP_LIB)/$(CLOOG)-$(CLOOG_VERSION),$(CLOOG_OPT))
 $(SOURCE_DIR)/.$(CLOOG).builded: $(SOURCE_DIR)/.$(CLOOG).configured
 	$(call Build_Modul,$(CLOOG),$(BUILD_CLOOG_DIR))
 $(SOURCE_DIR)/.$(CLOOG).installed: $(SOURCE_DIR)/.$(CLOOG).builded
@@ -956,7 +958,7 @@ $(SOURCE_DIR)/.$(GDB).loaded: $(TAR_DIR)
 $(SOURCE_DIR)/.$(GDB).extracted: $(SOURCE_DIR)/.$(GDB).loaded
 	$(call Extract_Modul,$(GDB),$(GDB_DIR),$(GDB_TAR),$(GDB_DIR)/$(GDB_TAR_DIR))
 $(SOURCE_DIR)/.$(GDB).configured: $(SOURCE_DIR)/.$(GDB).extracted
-	$(call Config_Modul,$(GDB),$(BUILD_GDB_DIR),--prefix=$(COMP_LIB)/$(GDB),$(GDB_OPT))
+	$(call Config_Modul,$(GDB),$(BUILD_GDB_DIR),--prefix=$(COMP_LIB)/$(GDB)-$(GDB_VERSION),$(GDB_OPT))
 $(SOURCE_DIR)/.$(GDB).builded: $(SOURCE_DIR)/.$(GDB).configured
 	$(call Build_Modul,$(GDB),$(BUILD_GDB_DIR))
 $(SOURCE_DIR)/.$(GDB).installed: $(SOURCE_DIR)/.$(GDB).builded
