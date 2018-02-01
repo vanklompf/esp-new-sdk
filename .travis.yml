@@ -31,7 +31,8 @@ jobs:
         - make build-newlib
         - travis_wait 35 make build-gcc-2
         - make build-libhal
-        - make build-libraries
+        - make build-sdk
+        - travis_wait 15 make build-tools
         - make distrib
       cache: false
     - os: osx
@@ -58,7 +59,8 @@ jobs:
         - mkdir -p distrib # needed for log-files
         - travis_wait 45 make build-gcc-2
         - make build-libhal
-        - make build-libraries
+        - make build-sdk
+        - travis_wait 15 make build-tools
         - make distrib
         - ls -la src tarballs
       before_cache: # caching is after the script

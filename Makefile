@@ -31,7 +31,7 @@ USE_EXPAT = n
 # The Chunky Loop Generator
 USE_CLOOG = n
 # build debugger
-USE_GDB = y
+USE_GDB = n
 
 PLATFORM := $(shell uname -s)
 ifneq (,$(findstring 64, $(shell uname -m)))
@@ -443,7 +443,8 @@ all:
 	@$(MAKE_OPT) build-$(NLX) 2>>$(ERROR_LOG)
 	@$(MAKE_OPT) build-gcc-2 2>>$(ERROR_LOG)
 	@$(MAKE_OPT) build-$(HAL) 2>>$(ERROR_LOG)
-	@$(MAKE_OPT) build-libraries 2>>$(ERROR_LOG)
+	@$(MAKE_OPT) build-tools 2>>$(ERROR_LOG)
+	@$(MAKE_OPT) build-sdk 2>>$(ERROR_LOG)
 	@$(MAKE_OPT) info
 	@cat build-start.txt; rm build-start.txt
 	@$(MAKE_OPT) distrib
@@ -459,9 +460,10 @@ install:
 #************* single builds ***************
 #*******************************************
 
-build: build-bins build-$(GCC)-1 build-$(NLX) build-$(GCC)-2 build-$(HAL) build-libraries
+build: build-bins build-$(GCC)-1 build-$(NLX) build-$(GCC)-2 build-$(HAL) build-sdk
 build-bins: $(TOOLCHAIN) build-$(CURSES) build-$(GMP) build-$(MPFR) build-$(ISL) build-$(CLOOG) build-$(MPC) build-$(EXPAT) build-$(BIN)
-build-libraries: build-$(GDB) build-$(LWIP) build-$(SDK) build-libs strip compress
+build-sdk: build-$(SDK) build-sdk-libs
+build-tools: build-$(GDB) build-$(LWIP) strip compress
 
 # prefetch for travis Osx-build-2
 get-gcc-src-dir:
@@ -540,7 +542,7 @@ build-$(HAL):    $(SOURCE_DIR)/.$(GCC)-pass-2.installed $(SOURCE_DIR)/.$(HAL).in
 #build-$(GDB):    $(SOURCE_DIR)/.$(GCC)-pass-2.installed $(SOURCE_DIR)/.$(GDB).installed
 #build-$(LWIP):   $(SOURCE_DIR)/.$(LWIP).installed
 build-$(SDK):    $(SOURCE_DIR)/.$(SDK).installed
-build-libs:      $(SOURCE_DIR)/.sdk-libs.installed
+build-sdk-libs:  $(SOURCE_DIR)/.sdk-libs.installed
 
 build-$(CURSES): $(TOOLCHAIN)
 ifeq ($(USE_CURSES),y)
