@@ -281,7 +281,6 @@ ISL_URL = ftp://gcc.gnu.org/pub/gcc/infrastructure/$(ISL)-$(ISL_VERSION).tar.bz2
 ISL_TAR = $(TAR_DIR)/$(ISL)-$(ISL_VERSION).tar.bz2
 ISL_TAR_DIR = $(ISL)-$(ISL_VERSION)
 
-CLOOG = CLooG
 CLOOG = cloog
 CLOOG_DIR = $(SOURCE_DIR)/$(CLOOG)-$(CLOOG_VERSION)
 BUILD_CLOOG_DIR = $(CLOOG_DIR)/$(BUILD_DIR)
@@ -550,7 +549,6 @@ build-$(GMP):    $(SOURCE_DIR)/.$(GMP).installed
 build-$(MPFR):   $(SOURCE_DIR)/.$(GMP).installed $(SOURCE_DIR)/.$(MPFR).installed
 #build-$(ISL):    $(SOURCE_DIR)/.$(GMP).installed $(SOURCE_DIR)/.$(ISL).installed
 #build-$(CLOOG):  $(SOURCE_DIR)/.$(GMP).installed $(SOURCE_DIR)/.$(ISL).installed $(SOURCE_DIR)/.$(CLOOG).installed
-#build-cloog:     $(SOURCE_DIR)/.$(GMP).installed $(SOURCE_DIR)/.$(ISL).installed $(SOURCE_DIR)/.$(CLOOG).installed
 build-$(MPC):    $(SOURCE_DIR)/.$(MPFR).installed $(SOURCE_DIR)/.$(MPC).installed
 #build-$(EXPAT):  $(SOURCE_DIR)/.$(EXPAT).installed
 build-$(BIN):    $(SOURCE_DIR)/.$(MPC).installed $(SOURCE_DIR)/.$(BIN).installed
