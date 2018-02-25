@@ -4,9 +4,9 @@
 #
 # Credits to Max Fillipov (@jcmvbkbc) for major xtensa-toolchain (gcc-xtensa, newlib-xtensa)
 # Credits to Paul Sokolovsky (@pfalcon) for esp-open-sdk
-# Credits to Ivan Grokhotkov (@igrr) compiler options (NLX_OPT) and library modifications
+# Credits to Ivan Grokhotkov (@igrr) for compiler options (NLX_OPT) and library modifications
 #
-# Last edit: 01.02.2018
+# Last edit: 25.02.2018
 
 #*******************************************
 #************** configuration **************
@@ -74,6 +74,7 @@ TARGET = xtensa-lx106-elf
 # create tar-file for distribution
 DISTRIB  = ""
 DISTRIB  = $(BUILD)-$(TARGET)
+USE_DISTRIB = y
 
 # xtensa-lx106-elf-gcc means the executable e.g. xtensa-lx106-elf-gcc.exe
 XCC  = $(TARGET)-cc
@@ -86,13 +87,23 @@ XOCP = $(TARGET)-objcopy
 SDK_VERSION = 1.3.0-rtos
 SDK_VERSION = 1.4.0-rtos
 SDK_VERSION = 1.5.0
+ESP_SDK_VERSION = 010500
 SDK_VERSION = 1.5.1
+ESP_SDK_VERSION = 010501
 SDK_VERSION = 1.5.2
+ESP_SDK_VERSION = 010502
 SDK_VERSION = 1.5.3
+ESP_SDK_VERSION = 010503
 SDK_VERSION = 1.5.4
+ESP_SDK_VERSION = 010504
 SDK_VERSION = 2.0.0
+ESP_SDK_VERSION = 020000
 SDK_VERSION = 2.1.0
 SDK_VERSION = 2.1.x
+ESP_SDK_VERSION = 020100
+SDK_VERSION = 2.2.0
+SDK_VERSION = 2.2.x
+ESP_SDK_VERSION = 020200
 
 GMP_VERSION = 6.0.0a
 GMP_VERSION = 6.1.0
@@ -306,7 +317,7 @@ ifeq ($(LWIP_VERSION),lwip2)
 endif
 
 ifeq ($(DEBUG),y)
-	WGET     := wget -c
+	WGET     := wget -c --progress=dot:binary
 	PATCH    := patch -b -N
 	QUIET    :=
 	MKDIR    := mkdir -p
@@ -388,6 +399,13 @@ SDK_VER_1.4.0-rtos = esp-rtos-sdk-v1.4.0
 SDK_URL_1.3.0-rtos = "https://github.com/espressif/ESP8266_RTOS_SDK/archive/3ca6af5da68678d809b34c7cd98bee71e0235039.zip"
 SDK_ZIP_1.3.0-rtos = ESP8266_RTOS_SDK-3ca6af5da68678d809b34c7cd98bee71e0235039
 SDK_VER_1.3.0-rtos = esp-rtos-sdk-v1.3.0
+#ESP8266_NONOS_SDK-2.2.0-3-gf8f27ce
+SDK_URL_2.2.x = "https://github.com/espressif/ESP8266_NONOS_SDK/archive/release/v2.2.x.zip"
+SDK_ZIP_2.2.x = ESP8266_NONOS_SDK-release-v2.2.x
+SDK_VER_2.2.x = esp_iot_sdk_v2.2.x
+SDK_URL_2.2.0 = "https://github.com/espressif/ESP8266_NONOS_SDK/archive/v2.2.0.zip"
+SDK_ZIP_2.2.0 = ESP8266_NONOS_SDK-2.2.0
+SDK_VER_2.2.0 = esp_iot_sdk_v2.2.0
 #ESP8266_NONOS_SDK-2.1.0-18-g61248df
 SDK_URL_2.1.x = "https://github.com/espressif/ESP8266_NONOS_SDK/archive/release/v2.1.x.zip"
 SDK_ZIP_2.1.x = ESP8266_NONOS_SDK-release-v2.1.x
@@ -464,7 +482,7 @@ build: build-bins build-$(GCC)-1 build-$(NLX) build-$(GCC)-2 build-$(HAL) build-
 build-bins: $(TOOLCHAIN) build-$(CURSES) build-$(GMP) build-$(MPFR) build-$(ISL) build-$(CLOOG) build-$(MPC) build-$(EXPAT) build-$(BIN)
 ###build-sdk: build-$(SDK) build-sdk-libs
 ###build-sdk: build-sdk-libs
-build-tools: build-$(GDB) build-$(LWIP) strip compress
+build-tools: build-$(GDB) build-$(LWIP) distrib #strip compress
 
 # prefetch for travis Osx-build-2
 get-gcc-src-dir:
@@ -586,7 +604,7 @@ ifeq ($(USE_COMPRESS),y)
 endif
 
 distrib:
-ifneq ($(DISTRIB), "")
+ifeq ($(USE_DISTRIB),y)
 	make $(SOURCE_DIR)/.$(SDK).distributed
 endif
 
@@ -646,6 +664,11 @@ ifeq ($(USE_LWIP),y)
 endif
 	$(info |)
 	$(info |   SDK      $(SDK_VERSION))
+ifeq ($(USE_DISTRIB),y)
+	$(info |)
+	$(info |   Distribution:)
+	$(info |     $(DISTRIB).tar.gz)
+endif
 	$(info +------------------------------------------------+)
 
 info-inst:
@@ -679,8 +702,8 @@ distrib-info:
 #*************** SDK  section **************
 #*******************************************
 
-$(SOURCE_DIR)/.$(SDK).distributed:
-ifneq ($(DISTRIB), "")
+$(SOURCE_DIR)/.$(SDK).distributed: $(SOURCE_DIR)/.$(SDK).stripped
+ifeq ($(DISTRIB),y)
 	@$(MAKE_OPT) distrib-info
 	@$(MKDIR) $(DIST_DIR)
 	-@bsdtar -cz -f $(DIST_DIR)/$(DISTRIB).tar.gz $(TARGET)
@@ -1016,43 +1039,30 @@ $(SOURCE_DIR)/.$(SDK).compressed:
 sdk_patch_1.4.0-rtos:
 sdk_patch_1.3.0-rtos:
 
-sdk_patch_2.1.x: $(SDK_DIR)/user_rf_cal_sector_set.o
-	@echo -e "#undef ESP_SDK_VERSION\n#define ESP_SDK_VERSION 020100" >>$(SDK_DIR)/include/esp_sdk_ver.h
-	-@$(PATCH) -d $(SDK_DIR) -p1 -i $(PATCHES_DIR)/c_types-c99_sdk_2.patch $(QUIET)
-	@cd $(SDK_DIR)/lib; mkdir -p tmp; cd tmp; $(TOOLCHAIN)/bin/$(XAR) x ../libcrypto.a; cd ..; $(TOOLCHAIN)/bin/$(XAR) rs libwpa.a tmp/*.o; rm -R tmp
-	@$(TOOLCHAIN)/bin/$(XAR) r $(SDK_DIR)/lib/libmain.a $(SDK_DIR)/user_rf_cal_sector_set.o
-sdk_patch_2.1.0: $(SDK_DIR)/user_rf_cal_sector_set.o
-	@echo -e "#undef ESP_SDK_VERSION\n#define ESP_SDK_VERSION 020100" >>$(SDK_DIR)/include/esp_sdk_ver.h
+sdk_patch_2.1.0 sdk_patch_2.1.x sdk_patch_2.2.0 sdk_patch_2.2.x: $(SDK_DIR)/user_rf_cal_sector_set.o
+	@echo -e "#undef ESP_SDK_VERSION\n#define ESP_SDK_VERSION $(ESP_SDK_VERSION)" >>$(SDK_DIR)/include/esp_sdk_ver.h
 	-@$(PATCH) -d $(SDK_DIR) -p1 -i $(PATCHES_DIR)/c_types-c99_sdk_2.patch $(QUIET)
 	@cd $(SDK_DIR)/lib; mkdir -p tmp; cd tmp; $(TOOLCHAIN)/bin/$(XAR) x ../libcrypto.a; cd ..; $(TOOLCHAIN)/bin/$(XAR) rs libwpa.a tmp/*.o; rm -R tmp
 	@$(TOOLCHAIN)/bin/$(XAR) r $(SDK_DIR)/lib/libmain.a $(SDK_DIR)/user_rf_cal_sector_set.o
 sdk_patch_2.0.0: ESP8266_NONOS_SDK_V2.0.0_patch_16_08_09.zip $(SDK_DIR)/user_rf_cal_sector_set.o
-	@echo -e "#undef ESP_SDK_VERSION\n#define ESP_SDK_VERSION 020000" >>$(SDK_DIR)/include/esp_sdk_ver.h
+	@echo -e "#undef ESP_SDK_VERSION\n#define ESP_SDK_VERSION $(ESP_SDK_VERSION)" >>$(SDK_DIR)/include/esp_sdk_ver.h
 	@$(UNTAR) $(PATCHES_DIR)/ESP8266_NONOS_SDK_V2.0.0_patch_16_08_09.zip
 	-@$(MOVE) libmain.a libnet80211.a libpp.a $(SDK_DIR_2.0.0)/lib/
 	-@$(PATCH) -d $(SDK_DIR) -p1 -i $(PATCHES_DIR)/c_types-c99_sdk_2.patch $(QUIET)
 	@cd $(SDK_DIR)/lib; mkdir -p tmp; cd tmp; $(TOOLCHAIN)/bin/$(XAR) x ../libcrypto.a; cd ..; $(TOOLCHAIN)/bin/$(XAR) rs libwpa.a tmp/*.o; rm -R tmp
 	@$(TOOLCHAIN)/bin/$(XAR) r $(SDK_DIR)/lib/libmain.a $(SDK_DIR)/user_rf_cal_sector_set.o
-sdk_patch_1.5.4:
-	@echo -e "#undef ESP_SDK_VERSION\n#define ESP_SDK_VERSION 010504" >>$(SDK_DIR)/include/esp_sdk_ver.h
+sdk_patch_1.5.0 sdk_patch_1.5.1 sdk_patch_1.5.4:
+	@echo -e "#undef ESP_SDK_VERSION\n#define ESP_SDK_VERSION $(ESP_SDK_VERSION)" >>$(SDK_DIR)/include/esp_sdk_ver.h
 	-@$(PATCH) -d $(SDK_DIR) -p1 -i $(PATCHES_DIR)/c_types-c99.patch $(QUIET)
 	@cd $(SDK_DIR)/lib; mkdir -p tmp; cd tmp; $(TOOLCHAIN)/bin/$(XAR) x ../libcrypto.a; cd ..; $(TOOLCHAIN)/bin/$(XAR) rs libwpa.a tmp/*.o; rm -R tmp
 sdk_patch_1.5.3:
-	@echo -e "#undef ESP_SDK_VERSION\n#define ESP_SDK_VERSION 010503" >>$(SDK_DIR)/include/esp_sdk_ver.h
+	@echo -e "#undef ESP_SDK_VERSION\n#define ESP_SDK_VERSION $(ESP_SDK_VERSION)" >>$(SDK_DIR)/include/esp_sdk_ver.h
 	-@$(PATCH) -d $(SDK_DIR) -p1 -i $(PATCHES_DIR)/c_types-c99.patch $(QUIET)
 	@$CP FRM_ERR_PATCH/*.a $(SDK_DIR)/lib/
 sdk_patch_1.5.2: Patch01_for_ESP8266_NONOS_SDK_V1.5.2.zip
-	@echo -e "#undef ESP_SDK_VERSION\n#define ESP_SDK_VERSION 010502" >>$(SDK_DIR)/include/esp_sdk_ver.h
+	@echo -e "#undef ESP_SDK_VERSION\n#define ESP_SDK_VERSION $(ESP_SDK_VERSION)" >>$(SDK_DIR)/include/esp_sdk_ver.h
 	@$(UNTAR) $(PATCHES_DIR)/Patch01_for_ESP8266_NONOS_SDK_V1.5.2.zip 
 	-@$(MOVE) libssl.a libnet80211.a libmain.a $(SDK_DIR_1.5.2)/lib/
-	-@$(PATCH) -d $(SDK_DIR) -p1 -i $(PATCHES_DIR)/c_types-c99.patch $(QUIET)
-	@cd $(SDK_DIR)/lib; mkdir -p tmp; cd tmp; $(TOOLCHAIN)/bin/$(XAR) x ../libcrypto.a; cd ..; $(TOOLCHAIN)/bin/$(XAR) rs libwpa.a tmp/*.o; rm -R tmp
-sdk_patch_1.5.1:
-	@echo -e "#undef ESP_SDK_VERSION\n#define ESP_SDK_VERSION 010504" >>$(SDK_DIR)/include/esp_sdk_ver.h
-	-@$(PATCH) -d $(SDK_DIR) -p1 -i $(PATCHES_DIR)/c_types-c99.patch $(QUIET)
-	@cd $(SDK_DIR)/lib; mkdir -p tmp; cd tmp; $(TOOLCHAIN)/bin/$(XAR) x ../libcrypto.a; cd ..; $(TOOLCHAIN)/bin/$(XAR) rs libwpa.a tmp/*.o; rm -R tmp
-sdk_patch_1.5.0:
-	@echo -e "#undef ESP_SDK_VERSION\n#define ESP_SDK_VERSION 010504" >>$(SDK_DIR)/include/esp_sdk_ver.h
 	-@$(PATCH) -d $(SDK_DIR) -p1 -i $(PATCHES_DIR)/c_types-c99.patch $(QUIET)
 	@cd $(SDK_DIR)/lib; mkdir -p tmp; cd tmp; $(TOOLCHAIN)/bin/$(XAR) x ../libcrypto.a; cd ..; $(TOOLCHAIN)/bin/$(XAR) rs libwpa.a tmp/*.o; rm -R tmp
 
