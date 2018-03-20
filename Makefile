@@ -6,7 +6,7 @@
 # Credits to Paul Sokolovsky (@pfalcon) for esp-open-sdk
 # Credits to Ivan Grokhotkov (@igrr) for compiler options (NLX_OPT) and library modifications
 #
-# Last edit: 25.02.2018
+# Last edit: 20.03.2018
 
 #*******************************************
 #************** configuration **************
@@ -33,6 +33,8 @@ USE_CLOOG = n
 # build debugger
 USE_GDB = n
 
+BUILDPATH = /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:
+
 PLATFORM := $(shell uname -s)
 ifneq (,$(findstring 64, $(shell uname -m)))
     ARCH = 64
@@ -44,9 +46,15 @@ BUILD := $(PLATFORM)
 ifeq ($(OS),Windows_NT)
     ifneq (,$(findstring MINGW32,$(PLATFORM)))
         BUILD := MinGW$(ARCH)
+        BUILDPATH := /mingw$(ARCH)/bin:$(BUILDPATH)
+    endif
+    ifneq (,$(findstring MINGW64,$(PLATFORM)))
+        BUILD := MinGW$(ARCH)
+        BUILDPATH := /mingw$(ARCH)/bin:$(BUILDPATH)
     endif
     ifneq (,$(findstring MSYS,$(PLATFORM)))
         BUILD := MSYS$(ARCH)
+        BUILDPATH := /msys$(ARCH)/bin:$(BUILDPATH)
     endif
     ifneq (,$(findstring CYGWIN,$(PLATFORM)))
         BUILD := Cygwin$(ARCH)
@@ -144,11 +152,13 @@ BIN_VERSION  = 2.27
 BIN_VERSION  = 2.28
 BIN_VERSION  = 2.29
 BIN_VERSION  = 2.29.1
+BIN_VERSION  = 2.30
 
 HAL_VERSION  = lx106-hal
 
 CURSES_VERSION  = 6.0
 EXPAT_VERSION = 2.1.0
+EXPAT_VERSION = 2.2.5
 
 ISL_VERSION  = 0.14
 ISL_VERSION  = 0.18
@@ -174,7 +184,7 @@ SDK_DIR = $(TOP_SDK)/$(SDK_VER)
 TOOLCHAIN = $(TOP)/$(TARGET)
 TARGET_DIR = $(TOOLCHAIN)/$(TARGET)
 
-SAFEPATH = "$(TOOLCHAIN)/bin:"/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:
+SAFEPATH = "$(TOOLCHAIN)/bin:"$(BUILDPATH)
 
 COMP_LIB = $(TOP)/comp_libs
 SOURCE_DIR = $(TOP)/src
@@ -267,7 +277,7 @@ CURSES_TAR_DIR = $(CURSES)-$(CURSES_VERSION)
 EXPAT = expat
 EXPAT_DIR = $(SOURCE_DIR)/$(EXPAT)-$(EXPAT_VERSION)
 BUILD_EXPAT_DIR = $(EXPAT_DIR)/$(BUILD_DIR)
-EXPAT_URL = https://github.com/libexpat/libexpat/releases/download/R_2_1_0/expat-2.1.0.tar.gz
+EXPAT_URL = https://sourceforge.net/projects/expat/files/expat/$(EXPAT_VERSION)/expat-$(EXPAT_VERSION).tar.bz2/download
 ifneq (,$(findstring 2.1.0,$(EXPAT_VERSION)))
     EXPAT_URL = https://github.com/libexpat/libexpat/releases/download/R_2_1_0/expat-2.1.0.tar.gz
 endif
@@ -619,6 +629,7 @@ info-start:
 	@echo "" >> $(ERROR_LOG)
 	@$(OUTPUT_DATE)
 	$(info Detected: $(BUILD) on $(OS))
+	$(info Path: $(SAFEPATH))
 	$(info Processors: $(NUMBER_OF_PROCESSORS))
 
 info-build:
