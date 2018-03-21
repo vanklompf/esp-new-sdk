@@ -712,7 +712,7 @@ distrib-info:
 #*******************************************
 
 $(SOURCE_DIR)/.$(SDK).distributed: $(SOURCE_DIR)/.$(SDK).stripped
-ifeq ($(DISTRIB),y)
+ifeq ($(USE_DISTRIB),y)
 	@$(MAKE_OPT) distrib-info
 	@$(MKDIR) $(DIST_DIR)
 	-@bsdtar -cz -f $(DIST_DIR)/$(DISTRIB).tar.gz $(TARGET)
