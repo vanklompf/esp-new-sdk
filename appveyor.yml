@@ -1,23 +1,20 @@
 image: Visual Studio 2017
 
 environment:
-  matrix:
-  - MSYSTEM: MSYS
-    LOG_NAME: MSYS64
   - MSYSTEM: MINGW64
-    LOG_NAME: MINGW64_NT-10.0
 
 install:
   - SET PATH=%PATH:C:\Program Files\Git\usr\bin;=%
   - SET PATH=C:\msys64\usr\bin;%PATH%
+  - pacman --noconfirm -S texinfo
   
 build_script:
   - make
 
 on_failure:
-  - ECHO Printing distrib\%LOG_NAME%-error.log...
-  - TYPE distrib\%LOG_NAME%-error.log
-  
+  - ECHO Printing distrib\MinGW64-error.log...
+  - TYPE distrib\MinGW64-error.log
+
 notifications:
   - provider: Email
     on_build_success: false
