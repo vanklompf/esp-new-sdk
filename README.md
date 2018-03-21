@@ -4,14 +4,13 @@ Makefile to build the toolchain and a complete standalone SDK for Espressif ESP8
 
 It was developed for use under Windows on Cygwin. It should be easy to maintain and configure, without additional files and scripts.
 
-Under Travis-CI it builds successfully on Linux and as well on MacOS.
+Under Travis-CI it builds successfully on Linux and as well on MacOS64.
 
-Thus it should build successfully on
+Thus it builds successfully on
 - Cygwin
-- MSYS
-- MinGW32
+- MinGW64
 - Linux
-- MacOS
+- MacOS64
 
 Install the project in a directory of your choice, for example 'esp-new-sdk'
 ```bash
@@ -46,7 +45,7 @@ To build parts of the project use the following commands:
   make build-gmp        # version 6.1.2  down to 6.0.0a
   make build-mpfr       # version 3.1.6  down to 3.1.1
   make build-mpc        # version 1.0.3  down to 1.0.1
-  make build-binutils   # version 2.29.1 down to 2.26
+  make build-binutils   # version 2.30   down to 2.26
   make build-gcc-1      # version 7.2.0  down to 4.8.2
   make build-newlib     # version xtensa
   make build-gcc-2
@@ -65,7 +64,7 @@ If configured you can build additional libraries with:
 To rebuild one of the above parts it should be enough to:
 - delete the corresponding file <src/.xxx.loaded> from 'src' directory, for example <src/.mpc.loaded>.
 
-Note: build directories are named after the operating system, for example <build-Cygwin64>
+Note: build directories are named after the operating system, for example 'build-Cygwin64'
 
 To clean the build system use the following commands:
 ```bash
