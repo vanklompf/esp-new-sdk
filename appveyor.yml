@@ -7,6 +7,7 @@ install:
   - SET PATH=%PATH:C:\Program Files\Git\usr\bin;=%
   - SET PATH=C:\msys64\usr\bin;%PATH%
   - pacman --noconfirm -S texinfo
+  - pacman --noconfirm -S autoconf
   
 build_script:
   - make
