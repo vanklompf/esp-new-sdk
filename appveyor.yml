@@ -6,8 +6,7 @@ environment:
 install:
   - SET PATH=%PATH:C:\Program Files\Git\usr\bin;=%
   - SET PATH=C:\msys64\usr\bin;%PATH%
-  - pacman --noconfirm -S texinfo
-  - pacman --noconfirm -S autoconf
+  - pacman --needed --noconfirm -S texinfo autoconf automake mingw-w64-x86_64-make mingw-w64-x86_64-gcc
   
 build_script:
   - make
