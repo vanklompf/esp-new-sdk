@@ -1,15 +1,17 @@
 image: Visual Studio 2017
 
 environment:
-  MSYSTEM: MINGW64
-
+#use MINGW64 environment to have native WIndows  binaries
+  MSYSTEM: MINGW64 
+#run bash without changing current directory
+  CHERE_INVOKING: 1
+  
 install:
-  - SET PATH=%PATH:C:\Program Files\Git\usr\bin;=%
-  - SET PATH=C:\msys64\usr\bin;%PATH%
   - pacman --needed --noconfirm -S texinfo autoconf automake mingw-w64-x86_64-make mingw-w64-x86_64-gcc
   
 build_script:
-  - make
+#run command via bash --login to have all env variables set up
+  - C:\msys64\usr\bin\bash --login -c make
 
 on_failure:
   - ECHO Printing distrib\MinGW64-error.log...
