@@ -11,7 +11,7 @@ install:
   
 build_script:
 #run command via bash --login to have all env variables set up
-  - C:\msys64\usr\bin\bash --login -c make
+  - C:\msys64\usr\bin\bash --login -c "make -j3"
 
 on_failure:
   - ECHO Printing distrib\MinGW64-error.log...

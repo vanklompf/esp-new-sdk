@@ -26,13 +26,13 @@ jobs:
         - echo -e "travis_fold:end:install-automake"
         - cd $TRAVIS_BUILD_DIR
         - make info-start
-        - make build-bins
-        - travis_wait 25 make build-gcc-1
+        - make build-bins -j3
+        - travis_wait 25 make build-gcc-1 -j3
         - make build-newlib
-        - travis_wait 35 make build-gcc-2
-        - make build-libhal
-        - make build-sdk-libs
-        - travis_wait 15 make build-tools
+        - travis_wait 35 make build-gcc-2 -j3
+        - make build-libhal -j3
+        - make build-sdk-libs -j3
+        - travis_wait 15 make build-tools -j3
         - make distrib
       cache: false
     - os: osx
