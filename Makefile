@@ -451,10 +451,13 @@ SDK_TAR_DIR = $(SDK_VER)/$(SDK_ZIP)
 #*******************************************
 #************** rules section **************
 #*******************************************
-
 .PHONY: build build-bins build-libraries get-tars
 .PHONY: info-start info-build info inst-info info-distrib
 .PHONY: distrib install strip compress clean clean-build clean-sdk
+.PHONY: build-$(GMP) build-$(MPFR) build-$(MPC) build-$(BIN) build-$(GCC)-1
+.PHONY: build-$(NLX) build-$(GCC)-2 build-$(HAL) build-sdk-libs 
+.PHONY: build-$(CURSES) build-$(ISL) build-$(CLOOG) build-$(EXPAT) build-$(GDB)
+.PHONY: build-$(LWIP)
 #.PHONY: get-$(CURSES) get-$(ISL) get-$(CLOOG) get-$(EXPAT) get-$(GDB) get-$(LWIP)
 
 #*******************************************
@@ -495,16 +498,7 @@ build:
 	$(MAKE) build-$(HAL) 
 	$(MAKE) build-sdk-libs
 	
-build-bins: 
-	$(MAKE) $(TOOLCHAIN) 
-	$(MAKE) build-$(CURSES) 
-	$(MAKE) build-$(GMP) 
-	$(MAKE) build-$(MPFR) 
-	$(MAKE) build-$(ISL) 
-	$(MAKE) build-$(CLOOG) 
-	$(MAKE) build-$(MPC) 
-	$(MAKE) build-$(EXPAT) 
-	$(MAKE) build-$(BIN)
+build-bins: build-$(CURSES) build-$(GMP) build-$(MPFR) build-$(MPC) build-$(ISL) build-$(CLOOG) build-$(EXPAT) build-$(BIN)
 	
 ###build-sdk: build-$(SDK) build-sdk-libs
 ###build-sdk: build-sdk-libs
@@ -576,22 +570,17 @@ $(TOOLCHAIN): $(DIST_DIR) $(SOURCE_DIR) $(TAR_DIR) $(COMP_LIB)
 #************* single targets **************
 #*******************************************
 #
-#build-$(CURSES): $(SOURCE_DIR)/.$(CURSES).installed
-build-$(GMP):    $(SOURCE_DIR)/.$(GMP).installed
-build-$(MPFR):   $(SOURCE_DIR)/.$(GMP).installed $(SOURCE_DIR)/.$(MPFR).installed
-#build-$(ISL):    $(SOURCE_DIR)/.$(GMP).installed $(SOURCE_DIR)/.$(ISL).installed
-#build-$(CLOOG):  $(SOURCE_DIR)/.$(GMP).installed $(SOURCE_DIR)/.$(ISL).installed $(SOURCE_DIR)/.$(CLOOG).installed
-build-$(MPC):    $(SOURCE_DIR)/.$(MPFR).installed $(SOURCE_DIR)/.$(MPC).installed
-#build-$(EXPAT):  $(SOURCE_DIR)/.$(EXPAT).installed
-build-$(BIN):    $(SOURCE_DIR)/.$(MPC).installed $(SOURCE_DIR)/.$(BIN).installed
-build-$(GCC)-1:  $(SOURCE_DIR)/.$(BIN).installed $(SOURCE_DIR)/.$(GCC)-pass-1.installed
-build-$(NLX):    $(SOURCE_DIR)/.$(GCC)-pass-1.installed $(SOURCE_DIR)/.$(NLX).installed
-build-$(GCC)-2:  $(SOURCE_DIR)/.$(NLX).installed $(SOURCE_DIR)/.$(GCC)-pass-2.installed
-build-$(HAL):    $(SOURCE_DIR)/.$(GCC)-pass-2.installed $(SOURCE_DIR)/.$(HAL).installed
-#build-$(GDB):    $(SOURCE_DIR)/.$(GCC)-pass-2.installed $(SOURCE_DIR)/.$(GDB).installed
-#build-$(LWIP):   $(SOURCE_DIR)/.$(LWIP).installed
+build-$(GMP):    $(TOOLCHAIN) $(SOURCE_DIR)/.$(GMP).installed
+build-$(MPFR):   $(TOOLCHAIN) $(SOURCE_DIR)/.$(MPFR).installed
+build-$(MPC):    $(TOOLCHAIN) $(SOURCE_DIR)/.$(MPC).installed
+build-$(BIN):    $(TOOLCHAIN) $(SOURCE_DIR)/.$(BIN).installed
+build-$(GCC)-1:  $(TOOLCHAIN) $(SOURCE_DIR)/.$(GCC)-pass-1.installed
+build-$(NLX):    $(TOOLCHAIN) $(SOURCE_DIR)/.$(GCC)-pass-1.installed $(SOURCE_DIR)/.$(NLX).installed
+build-$(GCC)-2:  $(TOOLCHAIN) $(SOURCE_DIR)/.$(NLX).installed $(SOURCE_DIR)/.$(GCC)-pass-2.installed
+build-$(HAL):    $(TOOLCHAIN) $(SOURCE_DIR)/.$(GCC)-pass-2.installed $(SOURCE_DIR)/.$(HAL).installed
+
 ###build-$(SDK):    $(SOURCE_DIR)/.$(SDK).installed
-build-sdk-libs:  $(SOURCE_DIR)/.$(SDK).installed $(SOURCE_DIR)/.sdk-libs.installed
+build-sdk-libs:  $(TOOLCHAIN) $(SOURCE_DIR)/.$(SDK).installed $(SOURCE_DIR)/.sdk-libs.installed
 
 build-$(CURSES): $(TOOLCHAIN)
 ifeq ($(USE_CURSES),y)
@@ -613,6 +602,7 @@ ifeq ($(USE_EXPAT),y)
 	make $(SOURCE_DIR)/.$(EXPAT).installed
 endif
 
+#build-$(GDB):    $(SOURCE_DIR)/.$(GCC)-pass-2.installed $(SOURCE_DIR)/.$(GDB).installed
 build-$(GDB): $(TOOLCHAIN)
 ifeq ($(USE_GDB),y)
 	make $(SOURCE_DIR)/.$(GDB).installed
@@ -788,6 +778,7 @@ libc: $(TARGET_DIR)/lib/libc.a $(TOOLCHAIN) $(NLX_DIR)
 	$(info #### libc.a ...       ####)
 
 libmain_objs = mem_manager.o time.o
+$(TARGET_DIR)/lib/libmain.a: $(SOURCE_DIR)/.$(SDK).installed
 libmain: $(TARGET_DIR)/lib/libmain.a
 	@$(TOOLCHAIN)/bin/$(XAR) $(AR_DEL) $(TARGET_DIR)/lib/$@.a $(libmain_objs)
 	@$(TOOLCHAIN)/bin/$(XAR) $(AR_XTRACT) $(TARGET_DIR)/lib/$@.a eagle_lwip_if.o user_interface.o
@@ -891,7 +882,7 @@ $(SOURCE_DIR)/.$(MPFR).loaded: $(TAR_DIR)
 	$(call Load_Modul,$(MPFR),$(MPFR_URL),$(MPFR_TAR))
 $(SOURCE_DIR)/.$(MPFR).extracted: $(SOURCE_DIR)/.$(MPFR).loaded
 	$(call Extract_Modul,$(MPFR),$(MPFR_DIR),$(MPFR_TAR),$(MPFR_DIR)/$(MPFR_TAR_DIR))
-$(SOURCE_DIR)/.$(MPFR).configured: $(SOURCE_DIR)/.$(MPFR).extracted
+$(SOURCE_DIR)/.$(MPFR).configured: $(SOURCE_DIR)/.$(MPFR).extracted $(SOURCE_DIR)/.$(GMP).installed
 	$(call Config_Modul,$(MPFR),$(BUILD_MPFR_DIR),--prefix=$(COMP_LIB)/$(MPFR)-$(MPFR_VERSION) -with-$(GMP)=$(COMP_LIB)/$(GMP)-$(GMP_VERSION),$(MPFR_OPT))
 $(SOURCE_DIR)/.$(MPFR).builded: $(SOURCE_DIR)/.$(MPFR).configured
 	$(call Build_Modul,$(MPFR),$(BUILD_MPFR_DIR))
@@ -903,7 +894,7 @@ $(SOURCE_DIR)/.$(MPC).loaded: $(TAR_DIR)
 	$(call Load_Modul,$(MPC),$(MPC_URL),$(MPC_TAR))
 $(SOURCE_DIR)/.$(MPC).extracted: $(SOURCE_DIR)/.$(MPC).loaded
 	$(call Extract_Modul,$(MPC),$(MPC_DIR),$(MPC_TAR),$(MPC_DIR)/$(MPC_TAR_DIR))
-$(SOURCE_DIR)/.$(MPC).configured: $(SOURCE_DIR)/.$(MPC).extracted
+$(SOURCE_DIR)/.$(MPC).configured: $(SOURCE_DIR)/.$(MPC).extracted $(SOURCE_DIR)/.$(GMP).installed $(SOURCE_DIR)/.$(MPFR).installed
 	$(call Config_Modul,$(MPC),$(BUILD_MPC_DIR),--prefix=$(COMP_LIB)/$(MPC)-$(MPC_VERSION) -with-$(MPFR)=$(COMP_LIB)/$(MPFR)-$(MPFR_VERSION) -with-$(GMP)=$(COMP_LIB)/$(GMP)-$(GMP_VERSION),$(MPC_OPT))
 $(SOURCE_DIR)/.$(MPC).builded: $(SOURCE_DIR)/.$(MPC).configured
 	$(call Build_Modul,$(MPC),$(BUILD_MPC_DIR))
@@ -939,7 +930,7 @@ $(SOURCE_DIR)/.$(ISL).loaded: $(TAR_DIR)
 	$(call Load_Modul,$(ISL),$(ISL_URL),$(ISL_TAR))
 $(SOURCE_DIR)/.$(ISL).extracted: $(SOURCE_DIR)/.$(ISL).loaded
 	$(call Extract_Modul,$(ISL),$(ISL_DIR),$(ISL_TAR),$(ISL_DIR)/$(ISL_TAR_DIR))
-$(SOURCE_DIR)/.$(ISL).configured: $(SOURCE_DIR)/.$(ISL).extracted
+$(SOURCE_DIR)/.$(ISL).configured: $(SOURCE_DIR)/.$(ISL).extracted $(SOURCE_DIR)/.$(GMP).installed
 	$(call Config_Modul,$(ISL),$(BUILD_ISL_DIR),--prefix=$(COMP_LIB)/$(ISL)-$(ISL_VERSION),$(ISL_OPT))
 $(SOURCE_DIR)/.$(ISL).builded: $(SOURCE_DIR)/.$(ISL).configured
 	$(call Build_Modul,$(ISL),$(BUILD_ISL_DIR))
@@ -951,7 +942,7 @@ $(SOURCE_DIR)/.$(CLOOG).loaded: $(TAR_DIR)
 	$(call Load_Modul,$(CLOOG),$(CLOOG_URL),$(CLOOG_TAR))
 $(SOURCE_DIR)/.$(CLOOG).extracted: $(SOURCE_DIR)/.$(CLOOG).loaded
 	$(call Extract_Modul,$(CLOOG),$(CLOOG_DIR),$(CLOOG_TAR),$(CLOOG_DIR)/$(CLOOG_TAR_DIR))
-$(SOURCE_DIR)/.$(CLOOG).configured: $(SOURCE_DIR)/.$(CLOOG).extracted
+$(SOURCE_DIR)/.$(CLOOG).configured: $(SOURCE_DIR)/.$(CLOOG).extracted $(SOURCE_DIR)/.$(GMP).installed $(SOURCE_DIR)/.$(ISL).installed
 	$(call Config_Modul,$(CLOOG),$(BUILD_CLOOG_DIR),--prefix=$(COMP_LIB)/$(CLOOG)-$(CLOOG_VERSION),$(CLOOG_OPT))
 $(SOURCE_DIR)/.$(CLOOG).builded: $(SOURCE_DIR)/.$(CLOOG).configured
 	$(call Build_Modul,$(CLOOG),$(BUILD_CLOOG_DIR))
@@ -964,7 +955,7 @@ $(SOURCE_DIR)/.$(GCC).loaded: $(TAR_DIR)
 $(SOURCE_DIR)/.$(GCC).extracted: $(SOURCE_DIR)/.$(GCC).loaded
 	$(call Extract_Modul,$(GCC),$(GCC_DIR),$(GCC_TAR),$(GCC_DIR)/$(GCC_TAR_DIR))
 #************** GCC Pass 1
-$(SOURCE_DIR)/.$(GCC)-pass-1.configured: $(SOURCE_DIR)/.$(GCC).extracted
+$(SOURCE_DIR)/.$(GCC)-pass-1.configured: $(SOURCE_DIR)/.$(GCC).extracted $(SOURCE_DIR)/.$(GMP).installed $(SOURCE_DIR)/.$(MPFR).installed $(SOURCE_DIR)/.$(MPC).installed $(SOURCE_DIR)/.$(BIN).installed
 	$(call Config_Modul,$(GCC)-pass-1,$(BUILD_GCC_DIR)-pass-1,--prefix=$(TOOLCHAIN) -target=$(TARGET),$(GC1_OPT))
 $(SOURCE_DIR)/.$(GCC)-pass-1.builded: $(SOURCE_DIR)/.$(GCC)-pass-1.configured
 	$(call Build_Modul,$(GCC)-pass-1,$(BUILD_GCC_DIR)-pass-1,,all-gcc)
