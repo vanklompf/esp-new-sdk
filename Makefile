@@ -469,12 +469,7 @@ all:
 	@$(MAKE) info-start
 	@$(MAKE) info-build
 	@$(MAKE) build-bins 2>>$(ERROR_LOG)
-	@$(MAKE) build-gcc-1 2>>$(ERROR_LOG)
-	@$(MAKE) build-$(NLX) 2>>$(ERROR_LOG)
-	@$(MAKE) build-gcc-2 2>>$(ERROR_LOG)
-	@$(MAKE) build-$(HAL) 2>>$(ERROR_LOG)
-	@$(MAKE) build-tools 2>>$(ERROR_LOG)
-	@$(MAKE) build-sdk-libs 2>>$(ERROR_LOG)
+	@$(MAKE) build 2>>$(ERROR_LOG)
 	@$(MAKE) info
 	@cat build-start.txt; rm build-start.txt
 	@$(MAKE) distrib
@@ -490,14 +485,7 @@ install:
 #************* single builds ***************
 #*******************************************
 
-build: 
-	$(MAKE) build-bins 
-	$(MAKE) build-$(GCC)-1 
-	$(MAKE) build-$(NLX) 
-	$(MAKE) build-$(GCC)-2 
-	$(MAKE) build-$(HAL) 
-	$(MAKE) build-sdk-libs
-	
+build: build-bins build-$(GCC)-1 build-$(NLX) build-$(GCC)-2 build-$(HAL) build-sdk-libs
 build-bins: build-$(CURSES) build-$(GMP) build-$(MPFR) build-$(MPC) build-$(ISL) build-$(CLOOG) build-$(EXPAT) build-$(BIN)
 	
 ###build-sdk: build-$(SDK) build-sdk-libs
@@ -758,8 +746,7 @@ endif
 #*******************************************
 #*************** LIBs section **************
 #*******************************************
-
-$(SOURCE_DIR)/.sdk-libs.installed: $(TARGET_DIR)/lib/libc.a $(TOOLCHAIN)/bin/xtensa-lx106-elf-gcc
+$(SOURCE_DIR)/.sdk-libs.installed: $(SOURCE_DIR)/.$(SDK).installed $(SOURCE_DIR)/.$(GCC)-pass-2.installed
 	$(call Info_Modul,Modify,Libs)
 	@$(MAKE) libc
 	$(TOOLCHAIN)/bin/$(XOCP) --rename-section .text=.irom0.text \
@@ -778,8 +765,7 @@ libc: $(TARGET_DIR)/lib/libc.a $(TOOLCHAIN) $(NLX_DIR)
 	$(info #### libc.a ...       ####)
 
 libmain_objs = mem_manager.o time.o
-$(TARGET_DIR)/lib/libmain.a: $(SOURCE_DIR)/.$(SDK).installed
-libmain: $(TARGET_DIR)/lib/libmain.a
+libmain: $(SOURCE_DIR)/.$(SDK).installed
 	@$(TOOLCHAIN)/bin/$(XAR) $(AR_DEL) $(TARGET_DIR)/lib/$@.a $(libmain_objs)
 	@$(TOOLCHAIN)/bin/$(XAR) $(AR_XTRACT) $(TARGET_DIR)/lib/$@.a eagle_lwip_if.o user_interface.o
 	@$(TOOLCHAIN)/bin/$(XOCP) $(OCP_REDEF) hostname=wifi_station_hostname eagle_lwip_if.o 
@@ -993,7 +979,7 @@ $(SOURCE_DIR)/.$(HAL).loaded: $(TAR_DIR)
 $(SOURCE_DIR)/.$(HAL).extracted: $(SOURCE_DIR)/.$(HAL).loaded
 	$(call Extract_Modul,$(HAL),$(HAL_DIR),$(HAL_TAR),$(HAL_DIR)/$(HAL_TAR_DIR))
 	@cd $(HAL_DIR); autoreconf -i $(QUIET)
-$(SOURCE_DIR)/.$(HAL).configured: $(SOURCE_DIR)/.$(HAL).extracted
+$(SOURCE_DIR)/.$(HAL).configured: $(SOURCE_DIR)/.$(HAL).extracted $(SOURCE_DIR)/.$(GCC)-pass-2.installed
 	$(call Config_Modul,$(HAL),$(BUILD_HAL_DIR),--host=$(TARGET) -prefix=$(TOOLCHAIN)/$(TARGET),$(HAL_OPT))
 $(SOURCE_DIR)/.$(HAL).builded: $(SOURCE_DIR)/.$(HAL).configured
 	$(call Build_Modul,$(HAL),$(BUILD_HAL_DIR))
