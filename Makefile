@@ -563,9 +563,9 @@ build-$(MPFR):   $(TOOLCHAIN) $(SOURCE_DIR)/.$(MPFR).installed
 build-$(MPC):    $(TOOLCHAIN) $(SOURCE_DIR)/.$(MPC).installed
 build-$(BIN):    $(TOOLCHAIN) $(SOURCE_DIR)/.$(BIN).installed
 build-$(GCC)-1:  $(TOOLCHAIN) $(SOURCE_DIR)/.$(GCC)-pass-1.installed
-build-$(NLX):    $(TOOLCHAIN) $(SOURCE_DIR)/.$(GCC)-pass-1.installed $(SOURCE_DIR)/.$(NLX).installed
-build-$(GCC)-2:  $(TOOLCHAIN) $(SOURCE_DIR)/.$(NLX).installed $(SOURCE_DIR)/.$(GCC)-pass-2.installed
-build-$(HAL):    $(TOOLCHAIN) $(SOURCE_DIR)/.$(GCC)-pass-2.installed $(SOURCE_DIR)/.$(HAL).installed
+build-$(NLX):    $(TOOLCHAIN) $(SOURCE_DIR)/.$(NLX).installed
+build-$(GCC)-2:  $(TOOLCHAIN) $(SOURCE_DIR)/.$(GCC)-pass-2.installed
+build-$(HAL):    $(TOOLCHAIN) $(SOURCE_DIR)/.$(HAL).installed
 
 ###build-$(SDK):    $(SOURCE_DIR)/.$(SDK).installed
 build-sdk-libs:  $(TOOLCHAIN) $(SOURCE_DIR)/.$(SDK).installed $(SOURCE_DIR)/.sdk-libs.installed
@@ -729,15 +729,14 @@ $(SOURCE_DIR)/.$(SDK).extracted: $(SOURCE_DIR)/.$(SDK).loaded
     ifneq "$(wildcard $(TOP_SDK)/License )" ""
 		-@$(MOVE) $(TOP_SDK)/License $(TOP_SDK)/$(SDK_VER)/
     endif
-$(SOURCE_DIR)/.$(SDK).patched: $(SOURCE_DIR)/.$(SDK).extracted
-	@$(MAKE) sdk_patch
+$(SOURCE_DIR)/.$(SDK).patched: $(SOURCE_DIR)/.$(SDK).extracted sdk_patch
 	@touch $@
 $(SOURCE_DIR)/.$(SDK).installed: $(SOURCE_DIR)/.$(SDK).patched
 	$(RM) $(SOURCE_DIR)/.$(SDK).distributed
 ifeq ($(STANDALONE),y)
 	$(call Info_Modul,Install,$(SDK))
-	@cp -p -R -f $(SDK_DIR)/include/* $(TARGET_DIR)/include/
-	@cp -p -R -f $(SDK_DIR)/lib/* $(TARGET_DIR)/lib/
+	@mkdir -p $(TARGET_DIR)/include/ && cp -p -R -f $(SDK_DIR)/include/* $(TARGET_DIR)/include/
+	@mkdir -p $(TARGET_DIR)/lib/ && cp -p -R -f $(SDK_DIR)/lib/* $(TARGET_DIR)/lib/
 	@sed -e 's/\r//' $(SDK_DIR)/ld/eagle.app.v6.ld | sed -e s@../ld/@@ >$(TARGET_DIR)/lib/eagle.app.v6.ld
 	@sed -e 's/\r//' $(SDK_DIR)/ld/eagle.rom.addr.v6.ld >$(TARGET_DIR)/lib/eagle.rom.addr.v6.ld
 endif
@@ -949,7 +948,7 @@ $(SOURCE_DIR)/.$(GCC)-pass-1.installed: $(SOURCE_DIR)/.$(GCC)-pass-1.builded
 	$(call Install_Modul,$(GCC)-pass-1,$(BUILD_GCC_DIR)-pass-1,install-gcc)
 	@cp -p -f $(TOOLCHAIN)/bin/$(XGCC) $(TOOLCHAIN)/bin/$(XCC)
 
-$(TOOLCHAIN)/bin/$(XGCC): $(SOURCE_DIR)/.$(BIN).installed
+$(TOOLCHAIN)/bin/$(XGCC): $(SOURCE_DIR)/.$(GCC)-pass-1.installed
 	@cp -p -f $(TOOLCHAIN)/bin/$(XGCC) $(TOOLCHAIN)/bin/$(XCC)
 
 #************** GCC Pass 2
@@ -965,7 +964,7 @@ $(SOURCE_DIR)/.$(NLX).loaded: $(TAR_DIR)
 	$(call Load_Modul,$(NLX),$(NLX_URL),$(NLX_TAR))
 $(SOURCE_DIR)/.$(NLX).extracted: $(SOURCE_DIR)/.$(NLX).loaded
 	$(call Extract_Modul,$(NLX),$(NLX_DIR),$(NLX_TAR),$(NLX_DIR)/$(NLX_TAR_DIR))
-$(SOURCE_DIR)/.$(NLX).configured: $(SOURCE_DIR)/.$(NLX).extracted
+$(SOURCE_DIR)/.$(NLX).configured: $(SOURCE_DIR)/.$(NLX).extracted $(SOURCE_DIR)/.$(GCC)-pass-1.installed
 	$(call Config_Modul,$(NLX),$(BUILD_NLX_DIR),$(NLX_OPT1),--prefix=$(TOOLCHAIN) -target=$(TARGET),$(NLX_OPT))
 $(SOURCE_DIR)/.$(NLX).builded: $(SOURCE_DIR)/.$(NLX).configured
 	$(call Build_Modul,$(NLX),$(BUILD_NLX_DIR),$(NLX_OPT1),all)
@@ -1074,8 +1073,7 @@ sdk_patch_1.5.2: Patch01_for_ESP8266_NONOS_SDK_V1.5.2.zip
 	-@$(PATCH) -d $(SDK_DIR) -p1 -i $(PATCHES_DIR)/c_types-c99.patch $(QUIET)
 	@cd $(SDK_DIR)/lib; mkdir -p tmp; cd tmp; $(TOOLCHAIN)/bin/$(XAR) x ../libcrypto.a; cd ..; $(TOOLCHAIN)/bin/$(XAR) rs libwpa.a tmp/*.o; rm -R tmp
 
-sdk_patch:
-	@$(MAKE) sdk_patch_$(SDK_VERSION)
+sdk_patch: sdk_patch_$(SDK_VERSION)
 
 $(GMP)_patch:
 $(MPFR)_patch:
@@ -1139,7 +1137,7 @@ Patch01_for_ESP8266_NONOS_SDK_V1.5.2.zip:
 ESP8266_NONOS_SDK_V2.0.0_patch_16_08_09.zip:
 	@$(WGET) --content-disposition "http://bbs.espressif.com/download/file.php?id=1654" --output-document $(PATCHES_DIR)/$@
 
-$(SDK_DIR)/user_rf_cal_sector_set.o: $(SDK_DIR) $(TOOLCHAIN)/bin/$(XGCC)
+$(SDK_DIR)/user_rf_cal_sector_set.o: $(SOURCE_DIR)/.$(SDK).extracted $(TOOLCHAIN)/bin/$(XGCC)
 	@cp -p $(PATCHES_DIR)/user_rf_cal_sector_set.c $(SDK_DIR)
 	@cd $(SDK_DIR); $(TOOLCHAIN)/bin/$(XGCC) -O2 -I$(SDK_DIR)/include -c $(SDK_DIR)/user_rf_cal_sector_set.c
 
