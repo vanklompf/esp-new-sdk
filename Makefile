@@ -485,7 +485,13 @@ install:
 #************* single builds ***************
 #*******************************************
 
-build: build-bins build-$(GCC)-1 build-$(NLX) build-$(GCC)-2 build-$(HAL) build-sdk-libs
+build: 
+	$(MAKE) build-$(GCC)-1 
+	$(MAKE) build-$(NLX) 
+	$(MAKE) build-$(GCC)-2 
+	$(MAKE) build-$(HAL) 
+	$(MAKE) build-sdk-libs
+
 build-bins: build-$(CURSES) build-$(GMP) build-$(MPFR) build-$(MPC) build-$(ISL) build-$(CLOOG) build-$(EXPAT) build-$(BIN)
 	
 ###build-sdk: build-$(SDK) build-sdk-libs
@@ -729,7 +735,7 @@ $(SOURCE_DIR)/.$(SDK).extracted: $(SOURCE_DIR)/.$(SDK).loaded
     ifneq "$(wildcard $(TOP_SDK)/License )" ""
 		-@$(MOVE) $(TOP_SDK)/License $(TOP_SDK)/$(SDK_VER)/
     endif
-$(SOURCE_DIR)/.$(SDK).patched: $(SOURCE_DIR)/.$(SDK).extracted sdk_patch
+$(SOURCE_DIR)/.$(SDK).patched: $(SOURCE_DIR)/.$(SDK).extracted sdk_patch_$(SDK_VERSION)
 	@touch $@
 $(SOURCE_DIR)/.$(SDK).installed: $(SOURCE_DIR)/.$(SDK).patched
 	$(RM) $(SOURCE_DIR)/.$(SDK).distributed
@@ -745,7 +751,8 @@ endif
 #*******************************************
 #*************** LIBs section **************
 #*******************************************
-$(SOURCE_DIR)/.sdk-libs.installed: $(SOURCE_DIR)/.$(SDK).installed $(SOURCE_DIR)/.$(GCC)-pass-2.installed
+$(TARGET_DIR)/lib/libc.a: $(SOURCE_DIR)/.$(SDK).installed
+$(SOURCE_DIR)/.sdk-libs.installed: $(TARGET_DIR)/lib/libc.a $(TOOLCHAIN)/bin/xtensa-lx106-elf-gcc
 	$(call Info_Modul,Modify,Libs)
 	@$(MAKE) libc
 	$(TOOLCHAIN)/bin/$(XOCP) --rename-section .text=.irom0.text \
@@ -783,7 +790,7 @@ libgcc: $(TARGET_DIR)/lib/libgcc.a
 	$(info #### libgcc  ...      ####)
 
 libstdc++_objs = pure.o vterminate.o guard.o functexcept.o del_op.o del_opv.o new_op.o new_opv.o
-libstdc++: $(TARGET_DIR)/lib/libstdc++.a
+libstdc++:
 	@$(TOOLCHAIN)/bin/$(XAR) $(AR_DEL) $(TARGET_DIR)/lib/$@.a $(libstdc++_objs)
 	$(info #### libstdc ...      ####)
 	$(info ##########################)
@@ -952,7 +959,7 @@ $(TOOLCHAIN)/bin/$(XGCC): $(SOURCE_DIR)/.$(GCC)-pass-1.installed
 	@cp -p -f $(TOOLCHAIN)/bin/$(XGCC) $(TOOLCHAIN)/bin/$(XCC)
 
 #************** GCC Pass 2
-$(SOURCE_DIR)/.$(GCC)-pass-2.configured: $(SOURCE_DIR)/.$(GCC)-pass-1.installed $(SOURCE_DIR)/.$(NLX).installed
+$(SOURCE_DIR)/.$(GCC)-pass-2.configured: $(SOURCE_DIR)/.$(GCC)-pass-1.installed
 	$(call Config_Modul,$(GCC)-pass-2,$(BUILD_GCC_DIR)-pass-2,--prefix=$(TOOLCHAIN) -target=$(TARGET),$(GC2_OPT))
 $(SOURCE_DIR)/.$(GCC)-pass-2.builded: $(SOURCE_DIR)/.$(GCC)-pass-2.configured
 	$(call Build_Modul,$(GCC)-pass-2,$(BUILD_GCC_DIR)-pass-2)
@@ -978,7 +985,7 @@ $(SOURCE_DIR)/.$(HAL).loaded: $(TAR_DIR)
 $(SOURCE_DIR)/.$(HAL).extracted: $(SOURCE_DIR)/.$(HAL).loaded
 	$(call Extract_Modul,$(HAL),$(HAL_DIR),$(HAL_TAR),$(HAL_DIR)/$(HAL_TAR_DIR))
 	@cd $(HAL_DIR); autoreconf -i $(QUIET)
-$(SOURCE_DIR)/.$(HAL).configured: $(SOURCE_DIR)/.$(HAL).extracted $(SOURCE_DIR)/.$(GCC)-pass-2.installed
+$(SOURCE_DIR)/.$(HAL).configured: $(SOURCE_DIR)/.$(HAL).extracted
 	$(call Config_Modul,$(HAL),$(BUILD_HAL_DIR),--host=$(TARGET) -prefix=$(TOOLCHAIN)/$(TARGET),$(HAL_OPT))
 $(SOURCE_DIR)/.$(HAL).builded: $(SOURCE_DIR)/.$(HAL).configured
 	$(call Build_Modul,$(HAL),$(BUILD_HAL_DIR))
@@ -1072,8 +1079,6 @@ sdk_patch_1.5.2: Patch01_for_ESP8266_NONOS_SDK_V1.5.2.zip
 	-@$(MOVE) libssl.a libnet80211.a libmain.a $(SDK_DIR_1.5.2)/lib/
 	-@$(PATCH) -d $(SDK_DIR) -p1 -i $(PATCHES_DIR)/c_types-c99.patch $(QUIET)
 	@cd $(SDK_DIR)/lib; mkdir -p tmp; cd tmp; $(TOOLCHAIN)/bin/$(XAR) x ../libcrypto.a; cd ..; $(TOOLCHAIN)/bin/$(XAR) rs libwpa.a tmp/*.o; rm -R tmp
-
-sdk_patch: sdk_patch_$(SDK_VERSION)
 
 $(GMP)_patch:
 $(MPFR)_patch:
