@@ -485,9 +485,7 @@ install:
 #************* single builds ***************
 #*******************************************
 
-build: 
-	$(MAKE) build-$(GCC)-1 
-	$(MAKE) build-$(NLX) 
+build: build-$(GCC)-1 build-$(NLX) 
 	$(MAKE) build-$(GCC)-2 
 	$(MAKE) build-$(HAL) 
 	$(MAKE) build-sdk-libs
