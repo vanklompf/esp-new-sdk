@@ -21,17 +21,17 @@ USE_STRIP = y
 # compress:	reduces used disc space by approx. 40-50 percent
 USE_COMPRESS = n
 # The Curses library "cursor optimization"
-USE_CURSES = n
+USE_CURSES = y
 # build lwip-lib
-USE_LWIP = n
+USE_LWIP = y
 # build isl
 USE_ISL = n
 # XML-Parser
-USE_EXPAT = n
+USE_EXPAT = y
 # The Chunky Loop Generator
 USE_CLOOG = n
 # build debugger
-USE_GDB = n
+USE_GDB = y
 
 BUILDPATH = /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:
 
@@ -491,20 +491,11 @@ build: build-$(GCC)-1
 	$(MAKE) build-$(HAL) 
 	$(MAKE) build-sdk-libs
 
-build-bins: build-$(CURSES) build-$(GMP) build-$(MPFR) build-$(MPC) build-$(ISL) build-$(CLOOG) build-$(EXPAT) build-$(BIN)
+build-bins:  build-$(GMP) build-$(MPFR) build-$(MPC) build-$(ISL) build-$(CLOOG) build-$(BIN)
 	
 ###build-sdk: build-$(SDK) build-sdk-libs
 ###build-sdk: build-sdk-libs
-build-tools: 
-	$(MAKE) build-$(GDB)
-	$(MAKE) build-$(LWIP)
-#	$(MAKE) distrib 
-#	$(MAKE) strip 
-#	$(MAKE) compress
-
-# prefetch for travis Osx-build-2
-get-gcc-src-dir:
-	make $(SOURCE_DIR)/.$(GCC).extracted
+build-tools: build-$(GDB) build-$(LWIP) build-$(CURSES) build-$(EXPAT)
 
 get-tars: $(TAR_DIR) get-$(CURSES) $(GMP_TAR) $(MPFR_TAR) get-$(ISL) get-$(CLOOG) $(MPC_TAR) get-$(EXPAT) $(BIN_TAR) $(GCC_TAR) $(NLX_TAR) $(HAL_TAR) if_isl_tar if_cloog_tar if_lwip_tar if_gdb_tar
 
@@ -905,7 +896,7 @@ $(SOURCE_DIR)/.$(EXPAT).installed: $(SOURCE_DIR)/.$(EXPAT).builded
 	$(call Install_Modul,$(EXPAT),$(BUILD_EXPAT_DIR),$(INST_OPT))
 
 #************** Binutils (The GNU binary utilities)
-$(SOURCE_DIR)/.$(BIN).loaded: $(TAR_DIR)
+$(SOURCE_DIR)/.$(BIN).loaded:
 	$(call Load_Modul,$(BIN),$(BIN_URL),$(BIN_TAR))
 $(SOURCE_DIR)/.$(BIN).extracted: $(SOURCE_DIR)/.$(BIN).loaded
 	$(call Extract_Modul,$(BIN),$(BIN_DIR),$(BIN_TAR),$(BIN_DIR)/$(BIN_TAR_DIR))
@@ -917,7 +908,7 @@ $(SOURCE_DIR)/.$(BIN).installed: $(SOURCE_DIR)/.$(BIN).builded
 	$(call Install_Modul,$(BIN),$(BUILD_BIN_DIR),$(INST_OPT))
 
 #************** ISL
-$(SOURCE_DIR)/.$(ISL).loaded: $(TAR_DIR)
+$(SOURCE_DIR)/.$(ISL).loaded:
 	$(call Load_Modul,$(ISL),$(ISL_URL),$(ISL_TAR))
 $(SOURCE_DIR)/.$(ISL).extracted: $(SOURCE_DIR)/.$(ISL).loaded
 	$(call Extract_Modul,$(ISL),$(ISL_DIR),$(ISL_TAR),$(ISL_DIR)/$(ISL_TAR_DIR))
@@ -929,7 +920,7 @@ $(SOURCE_DIR)/.$(ISL).installed: $(SOURCE_DIR)/.$(ISL).builded
 	$(call Install_Modul,$(ISL),$(BUILD_ISL_DIR),$(INST_OPT))
 
 #************** CLooG
-$(SOURCE_DIR)/.$(CLOOG).loaded: $(TAR_DIR)
+$(SOURCE_DIR)/.$(CLOOG).loaded:
 	$(call Load_Modul,$(CLOOG),$(CLOOG_URL),$(CLOOG_TAR))
 $(SOURCE_DIR)/.$(CLOOG).extracted: $(SOURCE_DIR)/.$(CLOOG).loaded
 	$(call Extract_Modul,$(CLOOG),$(CLOOG_DIR),$(CLOOG_TAR),$(CLOOG_DIR)/$(CLOOG_TAR_DIR))
@@ -941,7 +932,7 @@ $(SOURCE_DIR)/.$(CLOOG).installed: $(SOURCE_DIR)/.$(CLOOG).builded
 	$(call Install_Modul,$(CLOOG),$(BUILD_CLOOG_DIR),$(INST_OPT))
 
 #************** GCC (The GNU C preprocessor)
-$(SOURCE_DIR)/.$(GCC).loaded: $(TAR_DIR)
+$(SOURCE_DIR)/.$(GCC).loaded:
 	$(call Load_Modul,$(GCC),$(GCC_URL),$(GCC_TAR))
 $(SOURCE_DIR)/.$(GCC).extracted: $(SOURCE_DIR)/.$(GCC).loaded
 	$(call Extract_Modul,$(GCC),$(GCC_DIR),$(GCC_TAR),$(GCC_DIR)/$(GCC_TAR_DIR))

@@ -1,8 +1,5 @@
 sudo: false
 language: cpp
-stages: 
-  - Test
-  - Osx-build-2
 jobs:
   include:
     - os: linux
@@ -25,58 +22,18 @@ jobs:
         - cd automake-1.15; ./configure -q --prefix=/usr && make V=0; sudo make V=0 install; cd ..; rm -fR automake-1.15
         - echo -e "travis_fold:end:install-automake"
         - cd $TRAVIS_BUILD_DIR
-        - make info-start
         - travis_wait 45 make --debug=b -j3
-#        - travis_wait 25 make build-gcc-1 -j3
-#        - make build-newlib
-#        - travis_wait 35 make build-gcc-2 -j3
-#        - make build-libhal -j3
-#        - make build-sdk-libs -j3
-#        - travis_wait 15 make build-tools -j3
-#        - make distrib
       after_failure:
          - echo "Printing distrib\Linux64-error.log..."
          - cat distrib\Linux64-error.log
-      cache: false
     - os: osx
       script:
         - cd $TRAVIS_BUILD_DIR
-        - make info-start
-        - make build-bins
-        - travis_wait 25 make build-gcc-1
-        - make build-newlib
-        - make get-gcc-src-dir #prefetch for Osx-build-2
-      cache:
-        timeout: 2000
-        directories:
-          - comp_libs/
-          - src/
-          - xtensa-lx106-elf/
-          - tarballs/
+        - travis_wait 45 make --debug=b -j3
+      after_failure:
+         - echo "Printing distrib\MacOS64-error.log..."
+         - cat distrib\MacOS64-error.log        
       deploy: false
-    - stage: Osx-build-2
-      os: osx
-      script:
-        - cd $TRAVIS_BUILD_DIR
-        - ls -la src tarballs
-        - mkdir -p distrib # needed for log-files
-        - travis_wait 45 make build-gcc-2
-        - make build-libhal
-        - make build-sdk-libs
-        - travis_wait 15 make build-tools
-        - make distrib
-        - ls -la src tarballs
-      before_cache: # caching is after the script
-        # so we don't need them to delete
-        - mv comp_libs comp_old
-        - mv src src_old
-      cache:
-        timeout: 2000
-        directories:
-          - comp_libs/
-          - src/
-          - xtensa-lx106-elf/
-          - tarballs/
 before_install:
   # unset is needed for libhal
   - test -n $CC  && unset CC
