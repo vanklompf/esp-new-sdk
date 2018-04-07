@@ -334,7 +334,6 @@ ifeq ($(DEBUG),y)
 	RMDIR    := rm -R -f
 	MOVE     := mv -f
 	UNTAR    := bsdtar -vxf
-	MAKE_OPT := $(MAKE)
 	CONF_OPT := configure
 	INST_OPT := install
 	AR_DEL   := dv
@@ -352,8 +351,6 @@ else
 	RMDIR    := rm -R -f
 	MOVE     := mv -f
 	UNTAR    := bsdtar -xf
-	#MAKE_OPT := make -s -j1
-	MAKE_OPT := $(MAKE) V=1 -s
 	CONF_OPT := configure -q
 	INST_OPT := install -s
 	AR_DEL   := d
@@ -463,25 +460,25 @@ SDK_TAR_DIR = $(SDK_VER)/$(SDK_ZIP)
 
 # splitted builds to prevent Travis from from assuming a stalled build
 all:
-	@$(MAKE_OPT) info-start
-	@$(MAKE_OPT) info-build
-	@$(MAKE_OPT) build-bins 2>>$(ERROR_LOG)
-	@$(MAKE_OPT) build-gcc-1 2>>$(ERROR_LOG)
-	@$(MAKE_OPT) build-$(NLX) 2>>$(ERROR_LOG)
-	@$(MAKE_OPT) build-gcc-2 2>>$(ERROR_LOG)
-	@$(MAKE_OPT) build-$(HAL) 2>>$(ERROR_LOG)
-	@$(MAKE_OPT) build-tools 2>>$(ERROR_LOG)
-	@$(MAKE_OPT) build-sdk-libs 2>>$(ERROR_LOG)
-	@$(MAKE_OPT) info
+	@$(MAKE) info-start
+	@$(MAKE) info-build
+	@$(MAKE) build-bins 2>>$(ERROR_LOG)
+	@$(MAKE) build-gcc-1 2>>$(ERROR_LOG)
+	@$(MAKE) build-$(NLX) 2>>$(ERROR_LOG)
+	@$(MAKE) build-gcc-2 2>>$(ERROR_LOG)
+	@$(MAKE) build-$(HAL) 2>>$(ERROR_LOG)
+	@$(MAKE) build-tools 2>>$(ERROR_LOG)
+	@$(MAKE) build-sdk-libs 2>>$(ERROR_LOG)
+	@$(MAKE) info
 	@cat build-start.txt; rm build-start.txt
-	@$(MAKE_OPT) distrib
+	@$(MAKE) distrib
 	@$(OUTPUT_DATE)
 	@echo -e "\07"
 
 install:
 	rm $(SOURCE_DIR)/.*.installed
-	make info-install
-	make all
+	$(MAKE) info-install
+	$(MAKE) all
 
 #*******************************************
 #************* single builds ***************
@@ -495,38 +492,38 @@ build-tools: build-$(GDB) build-$(LWIP) distrib #strip compress
 
 # prefetch for travis Osx-build-2
 get-gcc-src-dir:
-	make $(SOURCE_DIR)/.$(GCC).extracted
+	$(MAKE) $(SOURCE_DIR)/.$(GCC).extracted
 
 get-tars: $(TAR_DIR) get-$(CURSES) $(GMP_TAR) $(MPFR_TAR) get-$(ISL) get-$(CLOOG) $(MPC_TAR) get-$(EXPAT) $(BIN_TAR) $(GCC_TAR) $(NLX_TAR) $(HAL_TAR) if_isl_tar if_cloog_tar if_lwip_tar if_gdb_tar
 
 get-$(CURSES): $(TAR_DIR)
 ifeq ($(USE_CURSES),y)
-	make $(CURSES_TAR)
+	$(MAKE) $(CURSES_TAR)
 endif
 
 get-$(ISL): $(TAR_DIR)
 ifeq ($(USE_ISL),y)
-	make $(ISL_TAR)
+	$(MAKE) $(ISL_TAR)
 endif
 
 get-$(CLOOG): $(TAR_DIR)
 ifeq ($(USE_CLOOG),y)
-	make $(CLOOG_TAR)
+	$(MAKE) $(CLOOG_TAR)
 endif
 
 get-$(EXPAT): $(TAR_DIR)
 ifeq ($(USE_EXPAT),y)
-	make $(EXPAT_TAR)
+	$(MAKE) $(EXPAT_TAR)
 endif
 
 get-$(GDB): $(TAR_DIR)
 ifeq ($(USE_GDB),y)
-	make $(GDB_TAR)
+	$(MAKE) $(GDB_TAR)
 endif
 
 get-$(LWIP): $(TAR_DIR)
 ifeq ($(USE_LWIP),y)
-	make $(LWIP_TAR)
+	$(MAKE) $(LWIP_TAR)
 endif
 
 $(SOURCE_DIR):
@@ -573,47 +570,47 @@ build-sdk-libs:  $(SOURCE_DIR)/.$(SDK).installed $(SOURCE_DIR)/.sdk-libs.install
 
 build-$(CURSES): $(TOOLCHAIN)
 ifeq ($(USE_CURSES),y)
-	make $(SOURCE_DIR)/.$(CURSES).installed
+	$(MAKE) $(SOURCE_DIR)/.$(CURSES).installed
 endif
 
 build-$(ISL): $(TOOLCHAIN)
 ifeq ($(USE_ISL),y)
-	make $(SOURCE_DIR)/.$(ISL).installed
+	$(MAKE) $(SOURCE_DIR)/.$(ISL).installed
 endif
 
 build-$(CLOOG): $(TOOLCHAIN)
 ifeq ($(USE_CLOOG),y)
-	make $(SOURCE_DIR)/.$(CLOOG).installed
+	$(MAKE) $(SOURCE_DIR)/.$(CLOOG).installed
 endif
 
 build-$(EXPAT): $(TOOLCHAIN)
 ifeq ($(USE_EXPAT),y)
-	make $(SOURCE_DIR)/.$(EXPAT).installed
+	$(MAKE) $(SOURCE_DIR)/.$(EXPAT).installed
 endif
 
 build-$(GDB): $(TOOLCHAIN)
 ifeq ($(USE_GDB),y)
-	make $(SOURCE_DIR)/.$(GDB).installed
+	$(MAKE) $(SOURCE_DIR)/.$(GDB).installed
 endif
 
 build-$(LWIP): $(TOOLCHAIN)
 ifeq ($(USE_LWIP),y)
-	make $(SOURCE_DIR)/.$(LWIP).installed
+	$(MAKE) $(SOURCE_DIR)/.$(LWIP).installed
 endif
 
 strip:
 ifeq ($(USE_STRIP),y)
-	make $(SOURCE_DIR)/.$(SDK).stripped
+	$(MAKE) $(SOURCE_DIR)/.$(SDK).stripped
 endif
 
 compress:
 ifeq ($(USE_COMPRESS),y)
-	make $(SOURCE_DIR)/.$(SDK).compressed
+	$(MAKE) $(SOURCE_DIR)/.$(SDK).compressed
 endif
 
 distrib:
 ifeq ($(USE_DISTRIB),y)
-	make $(SOURCE_DIR)/.$(SDK).distributed
+	$(MAKE) $(SOURCE_DIR)/.$(SDK).distributed
 endif
 
 #*******************************************
@@ -713,7 +710,7 @@ distrib-info:
 
 $(SOURCE_DIR)/.$(SDK).distributed: $(SOURCE_DIR)/.$(SDK).stripped
 ifeq ($(USE_DISTRIB),y)
-	@$(MAKE_OPT) distrib-info
+	@$(MAKE) distrib-info
 	@$(MKDIR) $(DIST_DIR)
 	-@bsdtar -cz -f $(DIST_DIR)/$(DISTRIB).tar.gz $(TARGET)
 	@ls $(DIST_DIR)/$(DISTRIB)*
@@ -730,7 +727,7 @@ $(SOURCE_DIR)/.$(SDK).extracted: $(SOURCE_DIR)/.$(SDK).loaded
 		-@$(MOVE) $(TOP_SDK)/License $(TOP_SDK)/$(SDK_VER)/
     endif
 $(SOURCE_DIR)/.$(SDK).patched: $(SOURCE_DIR)/.$(SDK).extracted
-	@$(MAKE_OPT) sdk_patch
+	@$(MAKE) sdk_patch
 	@touch $@
 $(SOURCE_DIR)/.$(SDK).installed: $(SOURCE_DIR)/.$(SDK).patched
 	$(RM) $(SOURCE_DIR)/.$(SDK).distributed
@@ -749,14 +746,14 @@ endif
 
 $(SOURCE_DIR)/.sdk-libs.installed: $(TARGET_DIR)/lib/libc.a $(TOOLCHAIN)/bin/xtensa-lx106-elf-gcc
 	$(call Info_Modul,Modify,Libs)
-	@$(MAKE_OPT) libc
+	@$(MAKE) libc
 	$(TOOLCHAIN)/bin/$(XOCP) --rename-section .text=.irom0.text \
 		--rename-section .literal=.irom0.literal $(<) $(TARGET_DIR)/lib/libcirom.a;
 	#@touch $@
 	$(info #### libcirom.a...    ####)
-	@$(MAKE_OPT) libmain
-	@$(MAKE_OPT) libgcc
-	@$(MAKE_OPT) libstdc++
+	@$(MAKE) libmain
+	@$(MAKE) libgcc
+	@$(MAKE) libstdc++
 	@touch $@
 
 libc_objs = lib_a-bzero.o lib_a-memcmp.o lib_a-memcpy.o lib_a-memmove.o lib_a-memset.o lib_a-rand.o \
@@ -815,7 +812,7 @@ endef
 define Config_Modul
 	@echo "##########################"
 	@echo "#### Config $1..."
-	@if ! test -f $(SOURCE_DIR)/.$1.patched; then $(MAKE_OPT) $1_patch && touch $(SOURCE_DIR)/.$1.patched; fi
+	@if ! test -f $(SOURCE_DIR)/.$1.patched; then $(MAKE) $1_patch && touch $(SOURCE_DIR)/.$1.patched; fi
 	@$(MKDIR) $2
 	#### Config: Path=$(SAFEPATH); cd $2 ../$(CONF_OPT) $3 $4
 	PATH=$(SAFEPATH); cd $2; ../$(CONF_OPT) $3 $4 $(QUIET)
@@ -825,8 +822,8 @@ endef
 define Build_Modul
 	@echo "##########################"
 	@echo "#### Build $1..."
-	#### Build: Path=$(SAFEPATH); $3 $(MAKE_OPT) $4 -C $2
-	PATH=$(SAFEPATH); $3 $(MAKE_OPT) $4 -C $2 $(QUIET) 
+	#### Build: Path=$(SAFEPATH); $3 $(MAKE) $4 -C $2
+	PATH=$(SAFEPATH); $3 $(MAKE) $4 -C $2 $(QUIET) 
 	@touch $(SOURCE_DIR)/.$1.builded
 endef
 
@@ -834,8 +831,8 @@ define Install_Modul
 	echo "##########################"
 	echo "#### Install $1..."
 	echo "##########################"
-	#### "Install: Path=$(SAFEPATH); $(MAKE_OPT) $3=$(INST_OPT) -C $2"
-	PATH=$(SAFEPATH); $(MAKE_OPT) $3 -C $2 $(QUIET)
+	#### "Install: Path=$(SAFEPATH); $(MAKE) $3=$(INST_OPT) -C $2"
+	PATH=$(SAFEPATH); $(MAKE) $3 -C $2 $(QUIET)
 	touch $(SOURCE_DIR)/.$1.installed
 	$(OUTPUT_DATE)
 endef
@@ -970,7 +967,7 @@ $(SOURCE_DIR)/.$(NLX).configured: $(SOURCE_DIR)/.$(NLX).extracted
 	$(call Config_Modul,$(NLX),$(BUILD_NLX_DIR),$(NLX_OPT1),--prefix=$(TOOLCHAIN) -target=$(TARGET),$(NLX_OPT))
 $(SOURCE_DIR)/.$(NLX).builded: $(SOURCE_DIR)/.$(NLX).configured
 	$(call Build_Modul,$(NLX),$(BUILD_NLX_DIR),$(NLX_OPT1),all)
-	@$(MAKE_OPT) -C $(BUILD_NLX_DIR) $(QUIET)
+	@$(MAKE) -C $(BUILD_NLX_DIR) $(QUIET)
 $(SOURCE_DIR)/.$(NLX).installed: $(SOURCE_DIR)/.$(NLX).builded
 	$(call Install_Modul,$(NLX),$(BUILD_NLX_DIR),$(INST_OPT))
 
@@ -1076,7 +1073,7 @@ sdk_patch_1.5.2: Patch01_for_ESP8266_NONOS_SDK_V1.5.2.zip
 	@cd $(SDK_DIR)/lib; mkdir -p tmp; cd tmp; $(TOOLCHAIN)/bin/$(XAR) x ../libcrypto.a; cd ..; $(TOOLCHAIN)/bin/$(XAR) rs libwpa.a tmp/*.o; rm -R tmp
 
 sdk_patch:
-	@$(MAKE_OPT) sdk_patch_$(SDK_VERSION)
+	@$(MAKE) sdk_patch_$(SDK_VERSION)
 
 $(GMP)_patch:
 $(MPFR)_patch:
@@ -1161,7 +1158,7 @@ clean-sdk:
 	$(info #### clean-sdk...)
 	$(info ##########################)
 	-rm -rf $(TOP_SDK)
-	-$(MAKE_OPT) -C $(LWIP_DIR) -f Makefile.open clean
+	-$(MAKE) -C $(LWIP_DIR) -f Makefile.open clean
 
 purge: clean
 	$(info ##########################)
