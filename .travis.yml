@@ -26,7 +26,7 @@ jobs:
         - echo -e "travis_fold:end:install-automake"
         - cd $TRAVIS_BUILD_DIR
         - make info-start
-        - travis_wait 30 make -j3
+        - travis_wait 30 make --debug=b -j3
 #        - travis_wait 25 make build-gcc-1 -j3
 #        - make build-newlib
 #        - travis_wait 35 make build-gcc-2 -j3
@@ -34,6 +34,9 @@ jobs:
 #        - make build-sdk-libs -j3
 #        - travis_wait 15 make build-tools -j3
 #        - make distrib
+      after_failure:
+         - echo "Printing distrib\Linux64-error.log..."
+         - cat distrib\Linux64-error.log
       cache: false
     - os: osx
       script:

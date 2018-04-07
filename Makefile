@@ -468,8 +468,8 @@ SDK_TAR_DIR = $(SDK_VER)/$(SDK_ZIP)
 all:
 	@$(MAKE) info-start
 	@$(MAKE) info-build
-	@$(MAKE) build-bins 2>>$(ERROR_LOG)
-	@$(MAKE) build 2>>$(ERROR_LOG)
+	$(MAKE) build-bins 2>>$(ERROR_LOG)
+	$(MAKE) build 2>>$(ERROR_LOG)
 	@$(MAKE) info
 	@cat build-start.txt; rm build-start.txt
 	@$(MAKE) distrib
@@ -485,7 +485,8 @@ install:
 #************* single builds ***************
 #*******************************************
 
-build: build-$(GCC)-1 build-$(NLX) 
+build: build-$(GCC)-1 
+	$(MAKE) build-$(NLX) 
 	$(MAKE) build-$(GCC)-2 
 	$(MAKE) build-$(HAL) 
 	$(MAKE) build-sdk-libs
@@ -554,7 +555,7 @@ $(COMP_LIB):
 $(DIST_DIR):
 	@$(MKDIR) $(DIST_DIR)
 
-$(TOOLCHAIN): $(DIST_DIR) $(SOURCE_DIR) $(TAR_DIR) $(COMP_LIB)
+$(TOOLCHAIN): | $(DIST_DIR) $(SOURCE_DIR) $(TAR_DIR) $(COMP_LIB)
 	@git config --global core.autocrlf false
 	@$(MKDIR) $(TOOLCHAIN)
 
@@ -562,45 +563,45 @@ $(TOOLCHAIN): $(DIST_DIR) $(SOURCE_DIR) $(TAR_DIR) $(COMP_LIB)
 #************* single targets **************
 #*******************************************
 #
-build-$(GMP):    $(TOOLCHAIN) $(SOURCE_DIR)/.$(GMP).installed
-build-$(MPFR):   $(TOOLCHAIN) $(SOURCE_DIR)/.$(MPFR).installed
-build-$(MPC):    $(TOOLCHAIN) $(SOURCE_DIR)/.$(MPC).installed
-build-$(BIN):    $(TOOLCHAIN) $(SOURCE_DIR)/.$(BIN).installed
-build-$(GCC)-1:  $(TOOLCHAIN) $(SOURCE_DIR)/.$(GCC)-pass-1.installed
-build-$(NLX):    $(TOOLCHAIN) $(SOURCE_DIR)/.$(NLX).installed
-build-$(GCC)-2:  $(TOOLCHAIN) $(SOURCE_DIR)/.$(GCC)-pass-2.installed
-build-$(HAL):    $(TOOLCHAIN) $(SOURCE_DIR)/.$(HAL).installed
+build-$(GMP):    $(SOURCE_DIR)/.$(GMP).installed | $(TOOLCHAIN) 
+build-$(MPFR):   $(SOURCE_DIR)/.$(MPFR).installed | $(TOOLCHAIN) 
+build-$(MPC):    $(SOURCE_DIR)/.$(MPC).installed | $(TOOLCHAIN) 
+build-$(BIN):    $(SOURCE_DIR)/.$(BIN).installed | $(TOOLCHAIN) 
+build-$(GCC)-1:  $(SOURCE_DIR)/.$(GCC)-pass-1.installed | $(TOOLCHAIN) 
+build-$(NLX):    $(SOURCE_DIR)/.$(NLX).installed | $(TOOLCHAIN) 
+build-$(GCC)-2:  $(SOURCE_DIR)/.$(GCC)-pass-2.installed | $(TOOLCHAIN) 
+build-$(HAL):    $(SOURCE_DIR)/.$(HAL).installed | $(TOOLCHAIN) 
 
 ###build-$(SDK):    $(SOURCE_DIR)/.$(SDK).installed
-build-sdk-libs:  $(TOOLCHAIN) $(SOURCE_DIR)/.$(SDK).installed $(SOURCE_DIR)/.sdk-libs.installed
+build-sdk-libs:  $(SOURCE_DIR)/.$(SDK).installed $(SOURCE_DIR)/.sdk-libs.installed | $(TOOLCHAIN)
 
-build-$(CURSES): $(TOOLCHAIN)
+build-$(CURSES): | $(TOOLCHAIN)
 ifeq ($(USE_CURSES),y)
 	make $(SOURCE_DIR)/.$(CURSES).installed
 endif
 
-build-$(ISL): $(TOOLCHAIN)
+build-$(ISL): | $(TOOLCHAIN)
 ifeq ($(USE_ISL),y)
 	make $(SOURCE_DIR)/.$(ISL).installed
 endif
 
-build-$(CLOOG): $(TOOLCHAIN)
+build-$(CLOOG): | $(TOOLCHAIN)
 ifeq ($(USE_CLOOG),y)
 	make $(SOURCE_DIR)/.$(CLOOG).installed
 endif
 
-build-$(EXPAT): $(TOOLCHAIN)
+build-$(EXPAT): | $(TOOLCHAIN)
 ifeq ($(USE_EXPAT),y)
 	make $(SOURCE_DIR)/.$(EXPAT).installed
 endif
 
 #build-$(GDB):    $(SOURCE_DIR)/.$(GCC)-pass-2.installed $(SOURCE_DIR)/.$(GDB).installed
-build-$(GDB): $(TOOLCHAIN)
+build-$(GDB): | $(TOOLCHAIN)
 ifeq ($(USE_GDB),y)
 	make $(SOURCE_DIR)/.$(GDB).installed
 endif
 
-build-$(LWIP): $(TOOLCHAIN)
+build-$(LWIP): | $(TOOLCHAIN)
 ifeq ($(USE_LWIP),y)
 	make $(SOURCE_DIR)/.$(LWIP).installed
 endif
@@ -733,7 +734,7 @@ $(SOURCE_DIR)/.$(SDK).extracted: $(SOURCE_DIR)/.$(SDK).loaded
     ifneq "$(wildcard $(TOP_SDK)/License )" ""
 		-@$(MOVE) $(TOP_SDK)/License $(TOP_SDK)/$(SDK_VER)/
     endif
-$(SOURCE_DIR)/.$(SDK).patched: $(SOURCE_DIR)/.$(SDK).extracted sdk_patch_$(SDK_VERSION)
+$(SOURCE_DIR)/.$(SDK).patched: $(SOURCE_DIR)/.$(SDK).extracted | sdk_patch_$(SDK_VERSION)
 	@touch $@
 $(SOURCE_DIR)/.$(SDK).installed: $(SOURCE_DIR)/.$(SDK).patched
 	$(RM) $(SOURCE_DIR)/.$(SDK).distributed
@@ -764,7 +765,7 @@ $(SOURCE_DIR)/.sdk-libs.installed: $(TARGET_DIR)/lib/libc.a $(TOOLCHAIN)/bin/xte
 
 libc_objs = lib_a-bzero.o lib_a-memcmp.o lib_a-memcpy.o lib_a-memmove.o lib_a-memset.o lib_a-rand.o \
 		lib_a-strcmp.o lib_a-strcpy.o lib_a-strlen.o lib_a-strncmp.o lib_a-strncpy.o lib_a-strstr.o
-libc: $(TARGET_DIR)/lib/libc.a $(TOOLCHAIN) $(NLX_DIR)
+libc: $(TARGET_DIR)/lib/libc.a | $(TOOLCHAIN) $(NLX_DIR)
 	$(TOOLCHAIN)/bin/$(XAR) $(AR_DEL) $(TARGET_DIR)/lib/$@.a $(libc_objs)
 	$(info #### libc.a ...       ####)
 
@@ -834,9 +835,9 @@ define Build_Modul
 endef
 
 define Install_Modul
-	echo "##########################"
-	echo "#### Install $1..."
-	echo "##########################"
+	@echo "##########################"
+	@echo "#### Install $1..."
+	@echo "##########################"
 	#### "Install: Path=$(SAFEPATH); $(MAKE) $3=$(INST_OPT) -C $2"
 	PATH=$(SAFEPATH); $(MAKE) $3 -C $2 $(QUIET)
 	touch $(SOURCE_DIR)/.$1.installed
@@ -945,7 +946,8 @@ $(SOURCE_DIR)/.$(GCC).loaded: $(TAR_DIR)
 $(SOURCE_DIR)/.$(GCC).extracted: $(SOURCE_DIR)/.$(GCC).loaded
 	$(call Extract_Modul,$(GCC),$(GCC_DIR),$(GCC_TAR),$(GCC_DIR)/$(GCC_TAR_DIR))
 #************** GCC Pass 1
-$(SOURCE_DIR)/.$(GCC)-pass-1.configured: $(SOURCE_DIR)/.$(GCC).extracted $(SOURCE_DIR)/.$(GMP).installed $(SOURCE_DIR)/.$(MPFR).installed $(SOURCE_DIR)/.$(MPC).installed $(SOURCE_DIR)/.$(BIN).installed
+$(SOURCE_DIR)/.$(GCC)-pass-1.configured: $(SOURCE_DIR)/.$(GCC).extracted
+#$(SOURCE_DIR)/.$(GCC)-pass-1.configured: $(SOURCE_DIR)/.$(GCC).extracted $(SOURCE_DIR)/.$(GMP).installed $(SOURCE_DIR)/.$(MPFR).installed $(SOURCE_DIR)/.$(MPC).installed $(SOURCE_DIR)/.$(BIN).installed
 	$(call Config_Modul,$(GCC)-pass-1,$(BUILD_GCC_DIR)-pass-1,--prefix=$(TOOLCHAIN) -target=$(TARGET),$(GC1_OPT))
 $(SOURCE_DIR)/.$(GCC)-pass-1.builded: $(SOURCE_DIR)/.$(GCC)-pass-1.configured
 	$(call Build_Modul,$(GCC)-pass-1,$(BUILD_GCC_DIR)-pass-1,,all-gcc)
@@ -969,7 +971,8 @@ $(SOURCE_DIR)/.$(NLX).loaded: $(TAR_DIR)
 	$(call Load_Modul,$(NLX),$(NLX_URL),$(NLX_TAR))
 $(SOURCE_DIR)/.$(NLX).extracted: $(SOURCE_DIR)/.$(NLX).loaded
 	$(call Extract_Modul,$(NLX),$(NLX_DIR),$(NLX_TAR),$(NLX_DIR)/$(NLX_TAR_DIR))
-$(SOURCE_DIR)/.$(NLX).configured: $(SOURCE_DIR)/.$(NLX).extracted $(SOURCE_DIR)/.$(GCC)-pass-1.installed
+$(SOURCE_DIR)/.$(NLX).configured: $(SOURCE_DIR)/.$(NLX).extracted
+#$(SOURCE_DIR)/.$(NLX).configured: $(SOURCE_DIR)/.$(NLX).extracted $(SOURCE_DIR)/.$(GCC)-pass-1.installed
 	$(call Config_Modul,$(NLX),$(BUILD_NLX_DIR),$(NLX_OPT1),--prefix=$(TOOLCHAIN) -target=$(TARGET),$(NLX_OPT))
 $(SOURCE_DIR)/.$(NLX).builded: $(SOURCE_DIR)/.$(NLX).configured
 	$(call Build_Modul,$(NLX),$(BUILD_NLX_DIR),$(NLX_OPT1),all)
