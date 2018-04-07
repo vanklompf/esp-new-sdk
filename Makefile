@@ -485,7 +485,7 @@ install:
 #*******************************************
 
 build: build-bins build-$(GCC)-1 build-$(NLX) build-$(GCC)-2 build-$(HAL) build-sdk-libs
-build-bins: $(TOOLCHAIN) build-$(CURSES) build-$(GMP) build-$(MPFR) build-$(ISL) build-$(CLOOG) build-$(MPC) build-$(EXPAT) build-$(BIN)
+build-bins: build-$(CURSES) build-$(GMP) build-$(MPFR) build-$(ISL) build-$(CLOOG) build-$(MPC) build-$(EXPAT) build-$(BIN)
 ###build-sdk: build-$(SDK) build-sdk-libs
 ###build-sdk: build-sdk-libs
 build-tools: build-$(GDB) build-$(LWIP) distrib #strip compress
@@ -543,7 +543,7 @@ $(COMP_LIB):
 $(DIST_DIR):
 	@$(MKDIR) $(DIST_DIR)
 
-$(TOOLCHAIN): $(DIST_DIR) $(SOURCE_DIR) $(TAR_DIR) $(COMP_LIB)
+$(TOOLCHAIN): | $(DIST_DIR) $(SOURCE_DIR) $(TAR_DIR) $(COMP_LIB)
 	@git config --global core.autocrlf false
 	@$(MKDIR) $(TOOLCHAIN)
 
@@ -568,32 +568,32 @@ build-$(HAL):    $(SOURCE_DIR)/.$(GCC)-pass-2.installed $(SOURCE_DIR)/.$(HAL).in
 ###build-$(SDK):    $(SOURCE_DIR)/.$(SDK).installed
 build-sdk-libs:  $(SOURCE_DIR)/.$(SDK).installed $(SOURCE_DIR)/.sdk-libs.installed
 
-build-$(CURSES): $(TOOLCHAIN)
+build-$(CURSES): | $(TOOLCHAIN)
 ifeq ($(USE_CURSES),y)
 	$(MAKE) $(SOURCE_DIR)/.$(CURSES).installed
 endif
 
-build-$(ISL): $(TOOLCHAIN)
+build-$(ISL): | $(TOOLCHAIN)
 ifeq ($(USE_ISL),y)
 	$(MAKE) $(SOURCE_DIR)/.$(ISL).installed
 endif
 
-build-$(CLOOG): $(TOOLCHAIN)
+build-$(CLOOG): | $(TOOLCHAIN)
 ifeq ($(USE_CLOOG),y)
 	$(MAKE) $(SOURCE_DIR)/.$(CLOOG).installed
 endif
 
-build-$(EXPAT): $(TOOLCHAIN)
+build-$(EXPAT): | $(TOOLCHAIN)
 ifeq ($(USE_EXPAT),y)
 	$(MAKE) $(SOURCE_DIR)/.$(EXPAT).installed
 endif
 
-build-$(GDB): $(TOOLCHAIN)
+build-$(GDB): | $(TOOLCHAIN)
 ifeq ($(USE_GDB),y)
 	$(MAKE) $(SOURCE_DIR)/.$(GDB).installed
 endif
 
-build-$(LWIP): $(TOOLCHAIN)
+build-$(LWIP): | $(TOOLCHAIN)
 ifeq ($(USE_LWIP),y)
 	$(MAKE) $(SOURCE_DIR)/.$(LWIP).installed
 endif
@@ -758,7 +758,7 @@ $(SOURCE_DIR)/.sdk-libs.installed: $(TARGET_DIR)/lib/libc.a $(TOOLCHAIN)/bin/xte
 
 libc_objs = lib_a-bzero.o lib_a-memcmp.o lib_a-memcpy.o lib_a-memmove.o lib_a-memset.o lib_a-rand.o \
 		lib_a-strcmp.o lib_a-strcpy.o lib_a-strlen.o lib_a-strncmp.o lib_a-strncpy.o lib_a-strstr.o
-libc: $(TARGET_DIR)/lib/libc.a $(TOOLCHAIN) $(NLX_DIR)
+libc: $(TARGET_DIR)/lib/libc.a | $(TOOLCHAIN) $(NLX_DIR)
 	$(TOOLCHAIN)/bin/$(XAR) $(AR_DEL) $(TARGET_DIR)/lib/$@.a $(libc_objs)
 	$(info #### libc.a ...       ####)
 
@@ -1137,7 +1137,7 @@ Patch01_for_ESP8266_NONOS_SDK_V1.5.2.zip:
 ESP8266_NONOS_SDK_V2.0.0_patch_16_08_09.zip:
 	@$(WGET) --content-disposition "http://bbs.espressif.com/download/file.php?id=1654" --output-document $(PATCHES_DIR)/$@
 
-$(SDK_DIR)/user_rf_cal_sector_set.o: $(SDK_DIR) $(TOOLCHAIN)/bin/$(XGCC)
+$(SDK_DIR)/user_rf_cal_sector_set.o: $(SOURCE_DIR)/.$(SDK).extracted $(TOOLCHAIN)/bin/$(XGCC)
 	@cp -p $(PATCHES_DIR)/user_rf_cal_sector_set.c $(SDK_DIR)
 	@cd $(SDK_DIR); $(TOOLCHAIN)/bin/$(XGCC) -O2 -I$(SDK_DIR)/include -c $(SDK_DIR)/user_rf_cal_sector_set.c
 
