@@ -463,11 +463,8 @@ all:
 	@$(MAKE) info-start
 	@$(MAKE) info-build
 	@$(MAKE) build-bins 2>>$(ERROR_LOG)
-	@$(MAKE) build-gcc-1 2>>$(ERROR_LOG)
-	@$(MAKE) build-$(NLX) 2>>$(ERROR_LOG)
-	@$(MAKE) build-gcc-2 2>>$(ERROR_LOG)
-	@$(MAKE) build-$(HAL) 2>>$(ERROR_LOG)
-	@$(MAKE) build-tools 2>>$(ERROR_LOG)
+	@$(MAKE) build 2>>$(ERROR_LOG)
+	@$(MAKE) compress 2>>$(ERROR_LOG)
 	@$(MAKE) build-sdk-libs 2>>$(ERROR_LOG)
 	@$(MAKE) info
 	@cat build-start.txt; rm build-start.txt
@@ -484,12 +481,20 @@ install:
 #************* single builds ***************
 #*******************************************
 
-build: build-bins build-$(GCC)-1 build-$(NLX) build-$(GCC)-2 build-$(HAL) build-sdk-libs
-build-bins: build-$(CURSES) build-$(GMP) build-$(MPFR) build-$(ISL) build-$(CLOOG) build-$(MPC) build-$(EXPAT) build-$(BIN)
-###build-sdk: build-$(SDK) build-sdk-libs
-###build-sdk: build-sdk-libs
-build-tools: build-$(GDB) build-$(LWIP) distrib #strip compress
+build:
+	$(MAKE) build-$(GCC)-1 
+	$(MAKE) build-$(NLX) 
+	$(MAKE) build-$(GCC)-2 
+	$(MAKE) build-$(HAL) 
+	$(MAKE) build-sdk-libs
 
+build-bins: build-$(GMP) build-$(MPFR) build-$(ISL) build-$(CLOOG) build-$(MPC) build-$(BIN)
+build-tools:
+	$(MAKE) build-$(GDB) 
+	$(MAKE) build-$(LWIP)
+	$(MAKE) build-$(EXPAT) 
+	$(MAKE) build-$(CURSES)
+	
 # prefetch for travis Osx-build-2
 get-gcc-src-dir:
 	$(MAKE) $(SOURCE_DIR)/.$(GCC).extracted
