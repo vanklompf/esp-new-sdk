@@ -826,9 +826,9 @@ define Build_Modul
 endef
 
 define Install_Modul
-	echo "##########################"
-	echo "#### Install $1..."
-	echo "##########################"
+	@echo "##########################"
+	@echo "#### Install $1..."
+	@echo "##########################"
 	#### "Install: Path=$(SAFEPATH); $(MAKE) $3=$(INST_OPT) -C $2"
 	PATH=$(SAFEPATH); $(MAKE) $3 -C $2 $(QUIET)
 	touch $(SOURCE_DIR)/.$1.installed
