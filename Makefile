@@ -21,17 +21,17 @@ USE_STRIP = y
 # compress:	reduces used disc space by approx. 40-50 percent
 USE_COMPRESS = n
 # The Curses library "cursor optimization"
-USE_CURSES = n
+USE_CURSES = y
 # build lwip-lib
-USE_LWIP = n
+USE_LWIP = y
 # build isl
 USE_ISL = n
 # XML-Parser
-USE_EXPAT = n
+USE_EXPAT = y
 # The Chunky Loop Generator
 USE_CLOOG = n
 # build debugger
-USE_GDB = n
+USE_GDB = y
 
 BUILDPATH = /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:
 
