@@ -821,7 +821,7 @@ define Build_Modul
 	@echo "##########################"
 	@echo "#### Build $1..."
 	#### Build: Path=$(SAFEPATH); $3 $(MAKE) $4 -C $2
-	PATH=$(SAFEPATH); $3 $(MAKE) $4 -C $2 $(QUIET) 
+	+PATH=$(SAFEPATH); $3 $(MAKE) $4 -C $2 $(QUIET) 
 	@touch $(SOURCE_DIR)/.$1.builded
 endef
 
