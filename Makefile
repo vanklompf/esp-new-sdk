@@ -551,22 +551,15 @@ $(TOOLCHAIN): | $(DIST_DIR) $(SOURCE_DIR) $(TAR_DIR) $(COMP_LIB)
 #************* single targets **************
 #*******************************************
 #
-#build-$(CURSES): $(SOURCE_DIR)/.$(CURSES).installed
-build-$(GMP):    $(SOURCE_DIR)/.$(GMP).installed
-build-$(MPFR):   $(SOURCE_DIR)/.$(GMP).installed $(SOURCE_DIR)/.$(MPFR).installed
-#build-$(ISL):    $(SOURCE_DIR)/.$(GMP).installed $(SOURCE_DIR)/.$(ISL).installed
-#build-$(CLOOG):  $(SOURCE_DIR)/.$(GMP).installed $(SOURCE_DIR)/.$(ISL).installed $(SOURCE_DIR)/.$(CLOOG).installed
-build-$(MPC):    $(SOURCE_DIR)/.$(MPFR).installed $(SOURCE_DIR)/.$(MPC).installed
-#build-$(EXPAT):  $(SOURCE_DIR)/.$(EXPAT).installed
-build-$(BIN):    $(SOURCE_DIR)/.$(MPC).installed $(SOURCE_DIR)/.$(BIN).installed
-build-$(GCC)-1:  $(SOURCE_DIR)/.$(BIN).installed $(SOURCE_DIR)/.$(GCC)-pass-1.installed
-build-$(NLX):    $(SOURCE_DIR)/.$(GCC)-pass-1.installed $(SOURCE_DIR)/.$(NLX).installed
-build-$(GCC)-2:  $(SOURCE_DIR)/.$(NLX).installed $(SOURCE_DIR)/.$(GCC)-pass-2.installed
-build-$(HAL):    $(SOURCE_DIR)/.$(GCC)-pass-2.installed $(SOURCE_DIR)/.$(HAL).installed
-#build-$(GDB):    $(SOURCE_DIR)/.$(GCC)-pass-2.installed $(SOURCE_DIR)/.$(GDB).installed
-#build-$(LWIP):   $(SOURCE_DIR)/.$(LWIP).installed
-###build-$(SDK):    $(SOURCE_DIR)/.$(SDK).installed
-build-sdk-libs:  $(SOURCE_DIR)/.$(SDK).installed $(SOURCE_DIR)/.sdk-libs.installed
+build-$(GMP):    $(SOURCE_DIR)/.$(GMP).installed | $(TOOLCHAIN) 
+build-$(MPFR):   $(SOURCE_DIR)/.$(MPFR).installed | $(TOOLCHAIN) 
+build-$(MPC):    $(SOURCE_DIR)/.$(MPC).installed | $(TOOLCHAIN) 
+build-$(BIN):    $(SOURCE_DIR)/.$(BIN).installed | $(TOOLCHAIN) 
+build-$(GCC)-1:  $(SOURCE_DIR)/.$(GCC)-pass-1.installed | $(TOOLCHAIN) 
+build-$(NLX):    $(SOURCE_DIR)/.$(NLX).installed | $(TOOLCHAIN) 
+build-$(GCC)-2:  $(SOURCE_DIR)/.$(GCC)-pass-2.installed | $(TOOLCHAIN) 
+build-$(HAL):    $(SOURCE_DIR)/.$(HAL).installed | $(TOOLCHAIN) 
+build-sdk-libs:  $(SOURCE_DIR)/.$(SDK).installed $(SOURCE_DIR)/.sdk-libs.installed | $(TOOLCHAIN)
 
 build-$(CURSES): | $(TOOLCHAIN)
 ifeq ($(USE_CURSES),y)
@@ -866,7 +859,7 @@ $(SOURCE_DIR)/.$(MPFR).loaded:
 	$(call Load_Modul,$(MPFR),$(MPFR_URL),$(MPFR_TAR))
 $(SOURCE_DIR)/.$(MPFR).extracted: $(SOURCE_DIR)/.$(MPFR).loaded
 	$(call Extract_Modul,$(MPFR),$(MPFR_DIR),$(MPFR_TAR),$(MPFR_DIR)/$(MPFR_TAR_DIR))
-$(SOURCE_DIR)/.$(MPFR).configured: $(SOURCE_DIR)/.$(MPFR).extracted
+$(SOURCE_DIR)/.$(MPFR).configured: $(SOURCE_DIR)/.$(MPFR).extracted $(SOURCE_DIR)/.$(GMP).installed
 	$(call Config_Modul,$(MPFR),$(BUILD_MPFR_DIR),--prefix=$(COMP_LIB)/$(MPFR)-$(MPFR_VERSION) -with-$(GMP)=$(COMP_LIB)/$(GMP)-$(GMP_VERSION),$(MPFR_OPT))
 $(SOURCE_DIR)/.$(MPFR).builded: $(SOURCE_DIR)/.$(MPFR).configured
 	$(call Build_Modul,$(MPFR),$(BUILD_MPFR_DIR))
@@ -878,7 +871,7 @@ $(SOURCE_DIR)/.$(MPC).loaded:
 	$(call Load_Modul,$(MPC),$(MPC_URL),$(MPC_TAR))
 $(SOURCE_DIR)/.$(MPC).extracted: $(SOURCE_DIR)/.$(MPC).loaded
 	$(call Extract_Modul,$(MPC),$(MPC_DIR),$(MPC_TAR),$(MPC_DIR)/$(MPC_TAR_DIR))
-$(SOURCE_DIR)/.$(MPC).configured: $(SOURCE_DIR)/.$(MPC).extracted
+$(SOURCE_DIR)/.$(MPC).configured: $(SOURCE_DIR)/.$(MPC).extracted $(SOURCE_DIR)/.$(GMP).installed $(SOURCE_DIR)/.$(MPFR).installed
 	$(call Config_Modul,$(MPC),$(BUILD_MPC_DIR),--prefix=$(COMP_LIB)/$(MPC)-$(MPC_VERSION) -with-$(MPFR)=$(COMP_LIB)/$(MPFR)-$(MPFR_VERSION) -with-$(GMP)=$(COMP_LIB)/$(GMP)-$(GMP_VERSION),$(MPC_OPT))
 $(SOURCE_DIR)/.$(MPC).builded: $(SOURCE_DIR)/.$(MPC).configured
 	$(call Build_Modul,$(MPC),$(BUILD_MPC_DIR))
@@ -914,7 +907,7 @@ $(SOURCE_DIR)/.$(ISL).loaded:
 	$(call Load_Modul,$(ISL),$(ISL_URL),$(ISL_TAR))
 $(SOURCE_DIR)/.$(ISL).extracted: $(SOURCE_DIR)/.$(ISL).loaded
 	$(call Extract_Modul,$(ISL),$(ISL_DIR),$(ISL_TAR),$(ISL_DIR)/$(ISL_TAR_DIR))
-$(SOURCE_DIR)/.$(ISL).configured: $(SOURCE_DIR)/.$(ISL).extracted
+$(SOURCE_DIR)/.$(ISL).configured: $(SOURCE_DIR)/.$(ISL).extracted $(SOURCE_DIR)/.$(GMP).installed
 	$(call Config_Modul,$(ISL),$(BUILD_ISL_DIR),--prefix=$(COMP_LIB)/$(ISL)-$(ISL_VERSION),$(ISL_OPT))
 $(SOURCE_DIR)/.$(ISL).builded: $(SOURCE_DIR)/.$(ISL).configured
 	$(call Build_Modul,$(ISL),$(BUILD_ISL_DIR))
@@ -926,7 +919,7 @@ $(SOURCE_DIR)/.$(CLOOG).loaded:
 	$(call Load_Modul,$(CLOOG),$(CLOOG_URL),$(CLOOG_TAR))
 $(SOURCE_DIR)/.$(CLOOG).extracted: $(SOURCE_DIR)/.$(CLOOG).loaded
 	$(call Extract_Modul,$(CLOOG),$(CLOOG_DIR),$(CLOOG_TAR),$(CLOOG_DIR)/$(CLOOG_TAR_DIR))
-$(SOURCE_DIR)/.$(CLOOG).configured: $(SOURCE_DIR)/.$(CLOOG).extracted
+$(SOURCE_DIR)/.$(CLOOG).configured: $(SOURCE_DIR)/.$(CLOOG).extracted $(SOURCE_DIR)/.$(GMP).installed $(SOURCE_DIR)/.$(ISL).installed
 	$(call Config_Modul,$(CLOOG),$(BUILD_CLOOG_DIR),--prefix=$(COMP_LIB)/$(CLOOG)-$(CLOOG_VERSION),$(CLOOG_OPT))
 $(SOURCE_DIR)/.$(CLOOG).builded: $(SOURCE_DIR)/.$(CLOOG).configured
 	$(call Build_Modul,$(CLOOG),$(BUILD_CLOOG_DIR))
