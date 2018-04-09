@@ -742,11 +742,11 @@ endif
 #*************** LIBs section **************
 #*******************************************
 
-$(SOURCE_DIR)/.sdk-libs.installed: $(TARGET_DIR)/lib/libc.a $(TOOLCHAIN)/bin/xtensa-lx106-elf-gcc
+$(SOURCE_DIR)/.sdk-libs.installed: $(SOURCE_DIR)/.$(SDK).installed
 	$(call Info_Modul,Modify,Libs)
 	@$(MAKE) libc
 	$(TOOLCHAIN)/bin/$(XOCP) --rename-section .text=.irom0.text \
-		--rename-section .literal=.irom0.literal $(<) $(TARGET_DIR)/lib/libcirom.a;
+		--rename-section .literal=.irom0.literal $(TARGET_DIR)/lib/libc.a $(TARGET_DIR)/lib/libcirom.a;
 	#@touch $@
 	$(info #### libcirom.a...    ####)
 	@$(MAKE) libmain
