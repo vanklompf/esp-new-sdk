@@ -6,7 +6,7 @@
 # Credits to Paul Sokolovsky (@pfalcon) for esp-open-sdk
 # Credits to Ivan Grokhotkov (@igrr) for compiler options (NLX_OPT) and library modifications
 #
-# Last edit: 10.04.2018
+# Last edit: 20.03.2018
 
 #*******************************************
 #************** configuration **************
@@ -125,14 +125,12 @@ MPFR_VERSION = 3.1.4
 MPFR_VERSION = 3.1.5
 MPFR_VERSION = 3.1.6
 #MPFR_VERSION = 4.0.0
-MPFR_VERSION = 4.0.1
 
 MPC_VERSION  = 1.0.1
 MPC_VERSION  = 1.0.2
 MPC_VERSION  = 1.0.3
 
 GCC_VERSION  = 4.8.2
-GCC_VERSION  = 4.8.5
 GCC_VERSION  = 4.9.2
 GCC_VERSION  = 5.1.0
 GCC_VERSION  = 5.2.0
@@ -328,37 +326,39 @@ ifeq ($(LWIP_VERSION),lwip2)
 endif
 
 ifeq ($(DEBUG),y)
-	WGET       := wget -c --progress=dot:binary
-	PATCH      := patch -b -N
-	QUIET      :=
-	MKDIR      := mkdir -p
-	MAKE_QUIET := $(MAKE)
-	RM         := rm -f
-	RMDIR      := rm -R -f
-	MOVE       := mv -f
-	UNTAR      := bsdtar -vxf
-	CONF_QUIET := configure
-	INST_QUIET := install
-	AR_DEL     := dv
-	AR_XTRACT  := xv
-	AR_INSERT  := rv
-	OCP_REDEF  := --redefine-sym
+	WGET     := wget -c --progress=dot:binary
+	PATCH    := patch -b -N
+	QUIET    :=
+	MKDIR    := mkdir -p
+	RM       := rm -f
+	RMDIR    := rm -R -f
+	MOVE     := mv -f
+	UNTAR    := bsdtar -vxf
+	CONF_OPT := configure
+	INST_OPT := install
+	MAKE_OPT :=
+	AR_DEL   := dv
+	AR_XTRACT:= xv
+	AR_INSERT:= rv
+	OCP_REDEF:= --redefine-sym
 else
-	WGET       := wget -cq
-	PATCH      := patch -s -b -N 
-	QUIET      := >>$(BUILD_LOG) 2>>$(ERROR_LOG)
-	MAKE_QUIET := $(MAKE) V=1 -s
-	MKDIR      := mkdir -p
-	RM         := rm -f
-	RMDIR      := rm -R -f
-	MOVE       := mv -f
-	UNTAR      := bsdtar -xf
-	CONF_QUIET := configure -q
-	INST_QUIET := install -s
-	AR_DEL     := d
-	AR_XTRACT  := x
-	AR_INSERT  := r
-	OCP_REDEF  := --redefine-sym
+	WGET     := wget -cq
+	PATCH    := patch -s -b -N 
+	QUIET    := 2> /dev/null
+	QUIET    := >>$(BUILD_LOG) 2>&1
+	QUIET    := >>$(BUILD_LOG) 2>>$(ERROR_LOG)
+	MKDIR    := mkdir -p
+	RM       := rm -f
+	RMDIR    := rm -R -f
+	MOVE     := mv -f
+	UNTAR    := bsdtar -xf
+	CONF_OPT := configure -q
+	INST_OPT := install -s
+	MAKE_OPT := V=1 -s
+	AR_DEL   := d
+	AR_XTRACT:= x
+	AR_INSERT:= r
+	OCP_REDEF:= --redefine-sym
 endif
 
 WITH_GMP  = --with-$(GMP)=$(COMP_LIB)/$(GMP)-$(GMP_VERSION)
@@ -451,7 +451,7 @@ SDK_TAR_DIR = $(SDK_VER)/$(SDK_ZIP)
 #************** rules section **************
 #*******************************************
 
-.PHONY: build get-tars
+.PHONY: build build-bins build-libraries get-tars
 .PHONY: info-start info-build info inst-info info-distrib
 .PHONY: distrib install strip compress clean clean-build clean-sdk
 #.PHONY: get-$(CURSES) get-$(ISL) get-$(CLOOG) get-$(EXPAT) get-$(GDB) get-$(LWIP)
@@ -462,76 +462,76 @@ SDK_TAR_DIR = $(SDK_VER)/$(SDK_ZIP)
 
 # splitted builds to prevent Travis from from assuming a stalled build
 all:
-	@$(MAKE_QUIET) info-start
-	@$(MAKE_QUIET) info-build 2>>$(ERROR_LOG)
-	@$(MAKE_QUIET) build 2>>$(ERROR_LOG)
-	@$(MAKE_QUIET) strip 2>>$(ERROR_LOG)
-	@$(MAKE_QUIET) compress 2>>$(ERROR_LOG)
-	@$(MAKE_QUIET) build-sdk-libs 2>>$(ERROR_LOG)
-	@$(MAKE_QUIET) info
+	@$(MAKE) info-start
+	@$(MAKE) info-build
+	@$(MAKE) $(MAKE_OPT) build-bins 2>>$(ERROR_LOG)
+	@$(MAKE) $(MAKE_OPT) build 2>>$(ERROR_LOG)
+	@$(MAKE) $(MAKE_OPT) compress 2>>$(ERROR_LOG)
+	@$(MAKE) $(MAKE_OPT) build-sdk-libs 2>>$(ERROR_LOG)
+	@$(MAKE) info
 	@cat build-start.txt; rm build-start.txt
-	@$(MAKE_QUIET) distrib
+	@$(MAKE) $(MAKE_OPT) strip
+	@$(MAKE) $(MAKE_OPT) distrib
 	@$(OUTPUT_DATE)
 	@echo -e "\07"
 
 install:
-	rm $(SOURCE_DIR)/.*.installed
-	$(MAKE_QUIET) info-install
-	$(MAKE_QUIET) all
+	@rm $(SOURCE_DIR)/.*.installed
+	$(MAKE) info-install
+	$(MAKE) $(MAKE_OPT) all
 
 #*******************************************
 #************* single builds ***************
 #*******************************************
 
 build:
-	$(MAKE_QUIET) build-$(GMP)
-	$(MAKE_QUIET) build-$(MPFR)
-	$(MAKE_QUIET) build-$(ISL)
-	$(MAKE_QUIET) build-$(CLOOG)
-	$(MAKE_QUIET) build-$(MPC)
-	$(MAKE_QUIET) build-$(BIN)
-	$(MAKE_QUIET) build-$(GCC)-1 
-	$(MAKE_QUIET) build-$(NLX) 
-	$(MAKE_QUIET) build-$(GCC)-2 
-	$(MAKE_QUIET) build-$(HAL) 
-	$(MAKE_QUIET) build-sdk-libs
+	$(MAKE) $(MAKE_OPT) build-$(GCC)-1 
+	$(MAKE) $(MAKE_OPT) build-$(NLX) 
+	$(MAKE) $(MAKE_OPT) build-$(GCC)-2 
+	$(MAKE) $(MAKE_OPT) build-$(HAL) 
+	$(MAKE) $(MAKE_OPT) build-sdk-libs
 
+build-bins: build-$(GMP) build-$(MPFR) build-$(ISL) build-$(CLOOG) build-$(MPC) build-$(BIN)
 build-tools:
-	$(MAKE_QUIET) build-$(GDB) 
-	$(MAKE_QUIET) build-$(LWIP)
-	$(MAKE_QUIET) build-$(EXPAT) 
-	$(MAKE_QUIET) build-$(CURSES)
+	$(MAKE) $(MAKE_OPT) build-$(GDB) 
+	$(MAKE) $(MAKE_OPT) build-$(LWIP)
+	$(MAKE) $(MAKE_OPT) build-$(EXPAT) 
+	$(MAKE) $(MAKE_OPT) build-$(CURSES)
+	
+# prefetch for travis Osx-build-2
+get-gcc-src-dir:
+	$(MAKE) $(MAKE_OPT) $(SOURCE_DIR)/.$(GCC).extracted
 
 get-tars: $(TAR_DIR) get-$(CURSES) $(GMP_TAR) $(MPFR_TAR) get-$(ISL) get-$(CLOOG) $(MPC_TAR) get-$(EXPAT) $(BIN_TAR) $(GCC_TAR) $(NLX_TAR) $(HAL_TAR) if_isl_tar if_cloog_tar if_lwip_tar if_gdb_tar
 
 get-$(CURSES):
 ifeq ($(USE_CURSES),y)
-	$(MAKE_QUIET) $(CURSES_TAR)
+	$(MAKE) $(MAKE_OPT) $(CURSES_TAR)
 endif
 
 get-$(ISL):
 ifeq ($(USE_ISL),y)
-	$(MAKE_QUIET) $(ISL_TAR)
+	$(MAKE) $(MAKE_OPT) $(ISL_TAR)
 endif
 
 get-$(CLOOG):
 ifeq ($(USE_CLOOG),y)
-	$(MAKE_QUIET) $(CLOOG_TAR)
+	$(MAKE) $(MAKE_OPT) $(CLOOG_TAR)
 endif
 
 get-$(EXPAT):
 ifeq ($(USE_EXPAT),y)
-	$(MAKE_QUIET) $(EXPAT_TAR)
+	$(MAKE) $(MAKE_OPT) $(EXPAT_TAR)
 endif
 
 get-$(GDB):
 ifeq ($(USE_GDB),y)
-	$(MAKE_QUIET) $(GDB_TAR)
+	$(MAKE) $(MAKE_OPT) $(GDB_TAR)
 endif
 
 get-$(LWIP):
 ifeq ($(USE_LWIP),y)
-	$(MAKE_QUIET) $(LWIP_TAR)
+	$(MAKE) $(MAKE_OPT) $(LWIP_TAR)
 endif
 
 $(SOURCE_DIR):
@@ -571,47 +571,47 @@ build-sdk-libs:  $(SOURCE_DIR)/.$(SDK).installed $(SOURCE_DIR)/.sdk-libs.install
 
 build-$(CURSES): | $(TOOLCHAIN)
 ifeq ($(USE_CURSES),y)
-	$(MAKE_QUIET) $(SOURCE_DIR)/.$(CURSES).installed
+	$(MAKE) $(MAKE_OPT) $(SOURCE_DIR)/.$(CURSES).installed
 endif
 
 build-$(ISL): | $(TOOLCHAIN)
 ifeq ($(USE_ISL),y)
-	$(MAKE_QUIET) $(SOURCE_DIR)/.$(ISL).installed
+	$(MAKE) $(MAKE_OPT) $(SOURCE_DIR)/.$(ISL).installed
 endif
 
 build-$(CLOOG): | $(TOOLCHAIN)
 ifeq ($(USE_CLOOG),y)
-	$(MAKE_QUIET) $(SOURCE_DIR)/.$(CLOOG).installed
+	$(MAKE) $(MAKE_OPT) $(SOURCE_DIR)/.$(CLOOG).installed
 endif
 
 build-$(EXPAT): | $(TOOLCHAIN)
 ifeq ($(USE_EXPAT),y)
-	$(MAKE_QUIET) $(SOURCE_DIR)/.$(EXPAT).installed
+	$(MAKE) $(MAKE_OPT) $(SOURCE_DIR)/.$(EXPAT).installed
 endif
 
 build-$(GDB): | $(TOOLCHAIN)
 ifeq ($(USE_GDB),y)
-	$(MAKE_QUIET) $(SOURCE_DIR)/.$(GDB).installed
+	$(MAKE) $(MAKE_OPT) $(SOURCE_DIR)/.$(GDB).installed
 endif
 
 build-$(LWIP): | $(TOOLCHAIN)
 ifeq ($(USE_LWIP),y)
-	$(MAKE_QUIET) $(SOURCE_DIR)/.$(LWIP).installed
+	$(MAKE) $(MAKE_OPT) $(SOURCE_DIR)/.$(LWIP).installed
 endif
 
 strip:
 ifeq ($(USE_STRIP),y)
-	$(MAKE_QUIET) $(SOURCE_DIR)/.$(SDK).stripped
+	$(MAKE) $(MAKE_OPT) $(SOURCE_DIR)/.$(SDK).stripped
 endif
 
 compress:
 ifeq ($(USE_COMPRESS),y)
-	$(MAKE_QUIET) $(SOURCE_DIR)/.$(SDK).compressed
+	$(MAKE) $(MAKE_OPT) $(SOURCE_DIR)/.$(SDK).compressed
 endif
 
 distrib:
 ifeq ($(USE_DISTRIB),y)
-	$(MAKE_QUIET) $(SOURCE_DIR)/.$(SDK).distributed
+	$(MAKE) $(MAKE_OPT) $(SOURCE_DIR)/.$(SDK).distributed
 endif
 
 #*******************************************
@@ -711,7 +711,7 @@ distrib-info:
 
 $(SOURCE_DIR)/.$(SDK).distributed:
 ifeq ($(USE_DISTRIB),y)
-	@$(MAKE_QUIET) distrib-info
+	@$(MAKE) distrib-info
 	@$(MKDIR) $(DIST_DIR)
 	-@bsdtar -cz -f $(DIST_DIR)/$(DISTRIB).tar.gz $(TARGET)
 	@ls $(DIST_DIR)/$(DISTRIB)*
@@ -728,10 +728,10 @@ $(SOURCE_DIR)/.$(SDK).extracted: $(SOURCE_DIR)/.$(SDK).loaded
 		-@$(MOVE) $(TOP_SDK)/License $(TOP_SDK)/$(SDK_VER)/
     endif
 $(SOURCE_DIR)/.$(SDK).patched: $(SOURCE_DIR)/.$(SDK).extracted
-	@$(MAKE_QUIET) sdk_patch
+	@$(MAKE) $(MAKE_OPT) sdk_patch
 	@touch $@
 $(SOURCE_DIR)/.$(SDK).installed: $(SOURCE_DIR)/.$(SDK).patched
-	$(RM) $(SOURCE_DIR)/.$(SDK).distributed
+	@$(RM) $(SOURCE_DIR)/.$(SDK).distributed
 ifeq ($(STANDALONE),y)
 	$(call Info_Modul,Install,$(SDK))
 	@cp -p -R -f $(SDK_DIR)/include/* $(TARGET_DIR)/include/
@@ -747,14 +747,14 @@ endif
 
 $(SOURCE_DIR)/.sdk-libs.installed: $(SOURCE_DIR)/.$(SDK).installed
 	$(call Info_Modul,Modify,Libs)
-	@$(MAKE_QUIET) libc
+	@$(MAKE) $(MAKE_OPT) libc
 	$(TOOLCHAIN)/bin/$(XOCP) --rename-section .text=.irom0.text \
 		--rename-section .literal=.irom0.literal $(TARGET_DIR)/lib/libc.a $(TARGET_DIR)/lib/libcirom.a;
 	#@touch $@
 	$(info #### libcirom.a...    ####)
-	@$(MAKE_QUIET) libmain
-	@$(MAKE_QUIET) libgcc
-	@$(MAKE_QUIET) libstdc++
+	@$(MAKE) $(MAKE_OPT) libmain
+	@$(MAKE) $(MAKE_OPT) libgcc
+	@$(MAKE) $(MAKE_OPT) libstdc++
 	@touch $@
 
 libc_objs = lib_a-bzero.o lib_a-memcmp.o lib_a-memcpy.o lib_a-memmove.o lib_a-memset.o lib_a-rand.o \
@@ -813,18 +813,18 @@ endef
 define Config_Modul
 	@echo "##########################"
 	@echo "#### Config $1..."
-	@if ! test -f $(SOURCE_DIR)/.$1.patched; then $(MAKE_QUIET) $1_patch && touch $(SOURCE_DIR)/.$1.patched; fi
+	@if ! test -f $(SOURCE_DIR)/.$1.patched; then $(MAKE) $(MAKE_OPT) $1_patch && touch $(SOURCE_DIR)/.$1.patched; fi
 	@$(MKDIR) $2
-	@#### Config: Path=$(SAFEPATH); cd $2 ../$(CONF_QUIET) $3 $4
-	@PATH=$(SAFEPATH); cd $2; ../$(CONF_QUIET) $3 $4 $(QUIET)
+	@#### Config: Path=$(SAFEPATH); cd $2 ../$(CONF_OPT) $3 $4
+	@PATH=$(SAFEPATH); cd $2; ../$(CONF_OPT) $3 $4 $(QUIET)
 	@touch $(SOURCE_DIR)/.$1.configured
 endef
 
 define Build_Modul
 	@echo "##########################"
 	@echo "#### Build $1..."
-	@#### Build: Path=$(SAFEPATH); $3 $(MAKE_QUIET) $4 -C $2
-	@PATH=$(SAFEPATH); $3 $(MAKE_QUIET) $4 -C $2 $(QUIET) 
+	@#### Build: Path=$(SAFEPATH); $3 $(MAKE) $(MAKE_OPT) $4 -C $2
+	+@PATH=$(SAFEPATH); $3 $(MAKE) $(MAKE_OPT) $4 -C $2 $(QUIET) 
 	@touch $(SOURCE_DIR)/.$1.builded
 endef
 
@@ -832,8 +832,8 @@ define Install_Modul
 	@echo "##########################"
 	@echo "#### Install $1..."
 	@echo "##########################"
-	#### "Install: Path=$(SAFEPATH); $(MAKE_QUIET) $3=(INST_QUIET) -C $2"
-	PATH=$(SAFEPATH); $(MAKE_QUIET) $3 -C $2 $(QUIET)
+	@#### "Install: Path=$(SAFEPATH); $(MAKE) $(MAKE_OPT) $3=$(INST_OPT) -C $2"
+	@PATH=$(SAFEPATH); $(MAKE) $(MAKE_OPT) $3 -C $2 $(QUIET)
 	@touch $(SOURCE_DIR)/.$1.installed
 	$(OUTPUT_DATE)
 endef
@@ -848,7 +848,7 @@ $(SOURCE_DIR)/.$(CURSES).configured: $(SOURCE_DIR)/.$(CURSES).extracted
 $(SOURCE_DIR)/.$(CURSES).builded: $(SOURCE_DIR)/.$(CURSES).configured
 	$(call Build_Modul,$(CURSES),$(BUILD_CURSES_DIR))
 $(SOURCE_DIR)/.$(CURSES).installed: $(SOURCE_DIR)/.$(CURSES).builded
-	$(call Install_Modul,$(CURSES),$(BUILD_CURSES_DIR),$(INST_QUIET))
+	$(call Install_Modul,$(CURSES),$(BUILD_CURSES_DIR),$(INST_OPT))
 
 #************** GMP (GNU Multiple Precision Arithmetic Library)
 $(SOURCE_DIR)/.$(GMP).loaded:
@@ -860,7 +860,7 @@ $(SOURCE_DIR)/.$(GMP).configured: $(SOURCE_DIR)/.$(GMP).extracted
 $(SOURCE_DIR)/.$(GMP).builded: $(SOURCE_DIR)/.$(GMP).configured
 	$(call Build_Modul,$(GMP),$(BUILD_GMP_DIR))
 $(SOURCE_DIR)/.$(GMP).installed: $(SOURCE_DIR)/.$(GMP).builded
-	$(call Install_Modul,$(GMP),$(BUILD_GMP_DIR),$(INST_QUIET))
+	$(call Install_Modul,$(GMP),$(BUILD_GMP_DIR),$(INST_OPT))
 
 #************** MPFR (Multiple Precision Floating-Point Reliable Library)
 $(SOURCE_DIR)/.$(MPFR).loaded:
@@ -872,7 +872,7 @@ $(SOURCE_DIR)/.$(MPFR).configured: $(SOURCE_DIR)/.$(MPFR).extracted $(SOURCE_DIR
 $(SOURCE_DIR)/.$(MPFR).builded: $(SOURCE_DIR)/.$(MPFR).configured
 	$(call Build_Modul,$(MPFR),$(BUILD_MPFR_DIR))
 $(SOURCE_DIR)/.$(MPFR).installed: $(SOURCE_DIR)/.$(MPFR).builded
-	$(call Install_Modul,$(MPFR),$(BUILD_MPFR_DIR),$(INST_QUIET))
+	$(call Install_Modul,$(MPFR),$(BUILD_MPFR_DIR),$(INST_OPT))
 
 #************** MPC (Multiple precision complex arithmetic Library)
 $(SOURCE_DIR)/.$(MPC).loaded:
@@ -884,7 +884,7 @@ $(SOURCE_DIR)/.$(MPC).configured: $(SOURCE_DIR)/.$(MPC).extracted $(SOURCE_DIR)/
 $(SOURCE_DIR)/.$(MPC).builded: $(SOURCE_DIR)/.$(MPC).configured
 	$(call Build_Modul,$(MPC),$(BUILD_MPC_DIR))
 $(SOURCE_DIR)/.$(MPC).installed: $(SOURCE_DIR)/.$(MPC).builded
-	$(call Install_Modul,$(MPC),$(BUILD_MPC_DIR),$(INST_QUIET))
+	$(call Install_Modul,$(MPC),$(BUILD_MPC_DIR),$(INST_OPT))
 
 #************** EXPAT
 $(SOURCE_DIR)/.$(EXPAT).loaded:
@@ -896,7 +896,7 @@ $(SOURCE_DIR)/.$(EXPAT).configured: $(SOURCE_DIR)/.$(EXPAT).extracted
 $(SOURCE_DIR)/.$(EXPAT).builded: $(SOURCE_DIR)/.$(EXPAT).configured
 	$(call Build_Modul,$(EXPAT),$(BUILD_EXPAT_DIR))
 $(SOURCE_DIR)/.$(EXPAT).installed: $(SOURCE_DIR)/.$(EXPAT).builded
-	$(call Install_Modul,$(EXPAT),$(BUILD_EXPAT_DIR),$(INST_QUIET))
+	$(call Install_Modul,$(EXPAT),$(BUILD_EXPAT_DIR),$(INST_OPT))
 
 #************** Binutils (The GNU binary utilities)
 $(SOURCE_DIR)/.$(BIN).loaded:
@@ -908,7 +908,7 @@ $(SOURCE_DIR)/.$(BIN).configured: $(SOURCE_DIR)/.$(BIN).extracted
 $(SOURCE_DIR)/.$(BIN).builded: $(SOURCE_DIR)/.$(BIN).configured
 	$(call Build_Modul,$(BIN),$(BUILD_BIN_DIR))
 $(SOURCE_DIR)/.$(BIN).installed: $(SOURCE_DIR)/.$(BIN).builded
-	$(call Install_Modul,$(BIN),$(BUILD_BIN_DIR),$(INST_QUIET))
+	$(call Install_Modul,$(BIN),$(BUILD_BIN_DIR),$(INST_OPT))
 
 #************** ISL
 $(SOURCE_DIR)/.$(ISL).loaded:
@@ -920,7 +920,7 @@ $(SOURCE_DIR)/.$(ISL).configured: $(SOURCE_DIR)/.$(ISL).extracted $(SOURCE_DIR)/
 $(SOURCE_DIR)/.$(ISL).builded: $(SOURCE_DIR)/.$(ISL).configured
 	$(call Build_Modul,$(ISL),$(BUILD_ISL_DIR))
 $(SOURCE_DIR)/.$(ISL).installed: $(SOURCE_DIR)/.$(ISL).builded
-	$(call Install_Modul,$(ISL),$(BUILD_ISL_DIR),$(INST_QUIET))
+	$(call Install_Modul,$(ISL),$(BUILD_ISL_DIR),$(INST_OPT))
 
 #************** CLooG
 $(SOURCE_DIR)/.$(CLOOG).loaded:
@@ -932,7 +932,7 @@ $(SOURCE_DIR)/.$(CLOOG).configured: $(SOURCE_DIR)/.$(CLOOG).extracted $(SOURCE_D
 $(SOURCE_DIR)/.$(CLOOG).builded: $(SOURCE_DIR)/.$(CLOOG).configured
 	$(call Build_Modul,$(CLOOG),$(BUILD_CLOOG_DIR))
 $(SOURCE_DIR)/.$(CLOOG).installed: $(SOURCE_DIR)/.$(CLOOG).builded
-	$(call Install_Modul,$(CLOOG),$(BUILD_CLOOG_DIR),$(INST_QUIET))
+	$(call Install_Modul,$(CLOOG),$(BUILD_CLOOG_DIR),$(INST_OPT))
 
 #************** GCC (The GNU C preprocessor)
 $(SOURCE_DIR)/.$(GCC).loaded:
@@ -957,7 +957,7 @@ $(SOURCE_DIR)/.$(GCC)-pass-2.configured: $(SOURCE_DIR)/.$(GCC)-pass-1.installed 
 $(SOURCE_DIR)/.$(GCC)-pass-2.builded: $(SOURCE_DIR)/.$(GCC)-pass-2.configured
 	$(call Build_Modul,$(GCC)-pass-2,$(BUILD_GCC_DIR)-pass-2)
 $(SOURCE_DIR)/.$(GCC)-pass-2.installed: $(SOURCE_DIR)/.$(GCC)-pass-2.builded
-	$(call Install_Modul,$(GCC)-pass-2,$(BUILD_GCC_DIR)-pass-2,$(INST_QUIET))
+	$(call Install_Modul,$(GCC)-pass-2,$(BUILD_GCC_DIR)-pass-2,$(INST_OPT))
 
 #************** Newlib (ANSI C library, math library, and collection of board support packages)
 $(SOURCE_DIR)/.$(NLX).loaded:
@@ -968,9 +968,9 @@ $(SOURCE_DIR)/.$(NLX).configured: $(SOURCE_DIR)/.$(NLX).extracted
 	$(call Config_Modul,$(NLX),$(BUILD_NLX_DIR),$(NLX_OPT1),--prefix=$(TOOLCHAIN) -target=$(TARGET),$(NLX_OPT))
 $(SOURCE_DIR)/.$(NLX).builded: $(SOURCE_DIR)/.$(NLX).configured
 	$(call Build_Modul,$(NLX),$(BUILD_NLX_DIR),$(NLX_OPT1),all)
-	@$(MAKE_QUIET) -C $(BUILD_NLX_DIR) $(QUIET)
+	@$(MAKE) $(MAKE_OPT) -C $(BUILD_NLX_DIR) $(QUIET)
 $(SOURCE_DIR)/.$(NLX).installed: $(SOURCE_DIR)/.$(NLX).builded
-	$(call Install_Modul,$(NLX),$(BUILD_NLX_DIR),$(INST_QUIET))
+	$(call Install_Modul,$(NLX),$(BUILD_NLX_DIR),$(INST_OPT))
 
 #************** Libhal (Hardware Abstraction Library for Xtensa LX106)
 $(SOURCE_DIR)/.$(HAL).loaded:
@@ -983,7 +983,7 @@ $(SOURCE_DIR)/.$(HAL).configured: $(SOURCE_DIR)/.$(HAL).extracted
 $(SOURCE_DIR)/.$(HAL).builded: $(SOURCE_DIR)/.$(HAL).configured
 	$(call Build_Modul,$(HAL),$(BUILD_HAL_DIR))
 $(SOURCE_DIR)/.$(HAL).installed: $(SOURCE_DIR)/.$(HAL).builded
-	$(call Install_Modul,$(HAL),$(BUILD_HAL_DIR),$(INST_QUIET))
+	$(call Install_Modul,$(HAL),$(BUILD_HAL_DIR),$(INST_OPT))
 
 #************** GDB (The GNU debugger)
 $(SOURCE_DIR)/.$(GDB).loaded:
@@ -995,7 +995,7 @@ $(SOURCE_DIR)/.$(GDB).configured: $(SOURCE_DIR)/.$(GDB).extracted
 $(SOURCE_DIR)/.$(GDB).builded: $(SOURCE_DIR)/.$(GDB).configured
 	$(call Build_Modul,$(GDB),$(BUILD_GDB_DIR))
 $(SOURCE_DIR)/.$(GDB).installed: $(SOURCE_DIR)/.$(GDB).builded
-	$(call Install_Modul,$(GDB),$(BUILD_GDB_DIR),$(INST_QUIET))
+	$(call Install_Modul,$(GDB),$(BUILD_GDB_DIR),$(INST_OPT))
 
 #************** LWIP
 $(SOURCE_DIR)/.$(LWIP).loaded:
@@ -1007,7 +1007,7 @@ $(SOURCE_DIR)/.$(LWIP).configured: $(SOURCE_DIR)/.$(LWIP).extracted
 $(SOURCE_DIR)/.$(LWIP).builded: $(SOURCE_DIR)/.$(LWIP).configured
 	$(call Build_Modul,$(LWIP),$(BUILD_LWIP_DIR) -f Makefile.open install CC=$(TOOLCHAIN)/bin/$(XGCC) AR=$(TOOLCHAIN)/bin/$(XAR) PREFIX=$(TOOLCHAIN))
 $(SOURCE_DIR)/.$(LWIP).installed: $(SOURCE_DIR)/.$(LWIP).builded
-	$(call Install_Modul,$(LWIP),$(BUILD_LWIP_DIR),$(INST_QUIET))
+	$(call Install_Modul,$(LWIP),$(BUILD_LWIP_DIR),$(INST_OPT))
 	@cp -p -a $(LWIP_DIR)/include/arch $(LWIP_DIR)/include/lwip $(LWIP_DIR)/include/netif $(LWIP_DIR)/include/lwipopts.h $(TARGET_DIR)/include/
 
 #*******************************************
@@ -1023,7 +1023,7 @@ $(SOURCE_DIR)/.$(SDK).stripped:
 	@du -sh $(TOOLCHAIN)/bin
 	-@find $(TOOLCHAIN) -maxdepth 2 -type f -perm /0111 -exec strip -s "{}" +
 	@du -sh $(TOOLCHAIN)/bin
-	$(RM) $(SOURCE_DIR)/.$(SDK).distributed
+	@$(RM) $(SOURCE_DIR)/.$(SDK).distributed
 	@touch $@
 
 #************** Compress via UPX
@@ -1036,7 +1036,7 @@ $(SOURCE_DIR)/.$(SDK).compressed:
 	-@find $(TOOLCHAIN) -maxdepth 2 -type f -perm /0111 -exec upx -q -1 "{}" +
 	@$(OUTPUT_DATE)
 	@du -sh $(TOOLCHAIN)/bin
-	$(RM) $(SOURCE_DIR)/.$(SDK).distributed
+	@$(RM) $(SOURCE_DIR)/.$(SDK).distributed
 	@touch $@
 
 #*******************************************
@@ -1074,7 +1074,7 @@ sdk_patch_1.5.2: Patch01_for_ESP8266_NONOS_SDK_V1.5.2.zip
 	@cd $(SDK_DIR)/lib; mkdir -p tmp; cd tmp; $(TOOLCHAIN)/bin/$(XAR) x ../libcrypto.a; cd ..; $(TOOLCHAIN)/bin/$(XAR) rs libwpa.a tmp/*.o; rm -R tmp
 
 sdk_patch:
-	@$(MAKE_QUIET) sdk_patch_$(SDK_VERSION)
+	@$(MAKE) $(MAKE_OPT) sdk_patch_$(SDK_VERSION)
 
 $(GMP)_patch:
 $(MPFR)_patch:
@@ -1153,13 +1153,13 @@ clean-build:
 	$(info ##########################)
 	-@$(RMDIR) $(TOOLCHAIN) $(COMP_LIB)/ $(BUILD_GMP_DIR) $(BUILD_MPFR_DIR) $(BUILD_MPC_DIR) $(BUILD_CURSES_DIR) $(BUILD_BIN_DIR) $(BUILD_ISL_DIR) $(BUILD_CLOOG_DIR)
 	-@$(RMDIR) $(BUILD_GCC_DIR)-pass-1 $(BUILD_NLX_DIR) $(BUILD_GCC_DIR)-pass-2 $(BUILD_HAL_DIR) $(BUILD_GDB_DIR)
-	-rm -f $(SOURCE_DIR)/.*ed
+	-@rm -f $(SOURCE_DIR)/.*ed
 clean-sdk:
 	$(info ##########################)
 	$(info #### clean-sdk...)
 	$(info ##########################)
 	-@rm -rf $(TOP_SDK)
-	-$(MAKE_QUIET) -C $(LWIP_DIR) -f Makefile.open clean
+	-$(MAKE) $(MAKE_OPT) -C $(LWIP_DIR) -f Makefile.open clean
 
 purge: clean
 	$(info ##########################)
@@ -1167,4 +1167,4 @@ purge: clean
 	$(info ##########################)
 	-@rm -rf $(GMP_DIR) $(MPFR_DIR) $(MPC_DIR) $(CURSES_DIR) $(BIN_DIR) $(ISL_DIR) $(CLOOG_DIR)
 	-@rm -rf $(GCC_DIR) $(NLX_DIR) $(HAL_DIR) $(GDB_DIR)
-#	-@rm -rf $(TAR_DIR)/*.{zip,bz2,xz,gz}
+#rm -@rf $(TAR_DIR)/*.{zip,bz2,xz,gz}
