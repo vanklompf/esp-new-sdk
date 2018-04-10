@@ -451,7 +451,7 @@ SDK_TAR_DIR = $(SDK_VER)/$(SDK_ZIP)
 #************** rules section **************
 #*******************************************
 
-.PHONY: build build-bins build-libraries get-tars
+.PHONY: build get-tars
 .PHONY: info-start info-build info inst-info info-distrib
 .PHONY: distrib install strip compress clean clean-build clean-sdk
 #.PHONY: get-$(CURSES) get-$(ISL) get-$(CLOOG) get-$(EXPAT) get-$(GDB) get-$(LWIP)
@@ -464,7 +464,6 @@ SDK_TAR_DIR = $(SDK_VER)/$(SDK_ZIP)
 all:
 	@$(MAKE_QUIET) info-start
 	@$(MAKE_QUIET) info-build 2>>$(ERROR_LOG)
-	@$(MAKE_QUIET) build-bins 2>>$(ERROR_LOG)
 	@$(MAKE_QUIET) build 2>>$(ERROR_LOG)
 	@$(MAKE_QUIET) strip 2>>$(ERROR_LOG)
 	@$(MAKE_QUIET) compress 2>>$(ERROR_LOG)
@@ -485,13 +484,18 @@ install:
 #*******************************************
 
 build:
+	$(MAKE_QUIET) build-$(GMP)
+	$(MAKE_QUIET) build-$(MPFR)
+	$(MAKE_QUIET) build-$(ISL)
+	$(MAKE_QUIET) build-$(CLOOG)
+	$(MAKE_QUIET) build-$(MPC)
+	$(MAKE_QUIET) build-$(BIN)
 	$(MAKE_QUIET) build-$(GCC)-1 
 	$(MAKE_QUIET) build-$(NLX) 
 	$(MAKE_QUIET) build-$(GCC)-2 
 	$(MAKE_QUIET) build-$(HAL) 
 	$(MAKE_QUIET) build-sdk-libs
 
-build-bins: build-$(GMP) build-$(MPFR) build-$(ISL) build-$(CLOOG) build-$(MPC) build-$(BIN)
 build-tools:
 	$(MAKE_QUIET) build-$(GDB) 
 	$(MAKE_QUIET) build-$(LWIP)
