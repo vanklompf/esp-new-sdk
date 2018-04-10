@@ -466,6 +466,7 @@ all:
 	@$(MAKE_QUIET) info-build 2>>$(ERROR_LOG)
 	@$(MAKE_QUIET) build-bins 2>>$(ERROR_LOG)
 	@$(MAKE_QUIET) build 2>>$(ERROR_LOG)
+	@$(MAKE_QUIET) strip 2>>$(ERROR_LOG)
 	@$(MAKE_QUIET) compress 2>>$(ERROR_LOG)
 	@$(MAKE_QUIET) build-sdk-libs 2>>$(ERROR_LOG)
 	@$(MAKE_QUIET) info
@@ -708,7 +709,7 @@ distrib-info:
 #*************** SDK  section **************
 #*******************************************
 
-$(SOURCE_DIR)/.$(SDK).distributed: $(SOURCE_DIR)/.$(SDK).stripped
+$(SOURCE_DIR)/.$(SDK).distributed:
 ifeq ($(USE_DISTRIB),y)
 	@$(MAKE_QUIET) distrib-info
 	@$(MKDIR) $(DIST_DIR)
