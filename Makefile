@@ -796,7 +796,7 @@ define Load_Modul
 	@$(MKDIR) $(TAR_DIR)
 	@if ! test -s $3; then echo "##########################"; fi
 	@if ! test -s $3; then echo "#### Load $1..."; fi
-	if ! test -s $3; then $(WGET) $2 --output-document $3 && $(RM) $(SOURCE_DIR)/.$1.*ed; fi
+	@if ! test -s $3; then $(WGET) $2 --output-document $3 && $(RM) $(SOURCE_DIR)/.$1.*ed; fi
 	@touch $(SOURCE_DIR)/.$1.loaded
 endef
 
@@ -1158,13 +1158,13 @@ clean-sdk:
 	$(info ##########################)
 	$(info #### clean-sdk...)
 	$(info ##########################)
-	-rm -rf $(TOP_SDK)
+	-@rm -rf $(TOP_SDK)
 	-$(MAKE_QUIET) -C $(LWIP_DIR) -f Makefile.open clean
 
 purge: clean
 	$(info ##########################)
 	$(info #### purge...)
 	$(info ##########################)
-	-rm -rf $(GMP_DIR) $(MPFR_DIR) $(MPC_DIR) $(CURSES_DIR) $(BIN_DIR) $(ISL_DIR) $(CLOOG_DIR)
-	-rm -rf $(GCC_DIR) $(NLX_DIR) $(HAL_DIR) $(GDB_DIR)
-#rm -rf $(TAR_DIR)/*.{zip,bz2,xz,gz}
+	-@rm -rf $(GMP_DIR) $(MPFR_DIR) $(MPC_DIR) $(CURSES_DIR) $(BIN_DIR) $(ISL_DIR) $(CLOOG_DIR)
+	-@rm -rf $(GCC_DIR) $(NLX_DIR) $(HAL_DIR) $(GDB_DIR)
+#	-@rm -rf $(TAR_DIR)/*.{zip,bz2,xz,gz}
