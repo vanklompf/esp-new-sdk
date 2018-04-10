@@ -497,10 +497,6 @@ build-tools:
 	$(MAKE_QUIET) build-$(LWIP)
 	$(MAKE_QUIET) build-$(EXPAT) 
 	$(MAKE_QUIET) build-$(CURSES)
-	
-# prefetch for travis Osx-build-2
-get-gcc-src-dir:
-	$(MAKE_QUIET) $(SOURCE_DIR)/.$(GCC).extracted
 
 get-tars: $(TAR_DIR) get-$(CURSES) $(GMP_TAR) $(MPFR_TAR) get-$(ISL) get-$(CLOOG) $(MPC_TAR) get-$(EXPAT) $(BIN_TAR) $(GCC_TAR) $(NLX_TAR) $(HAL_TAR) if_isl_tar if_cloog_tar if_lwip_tar if_gdb_tar
 
