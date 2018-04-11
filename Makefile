@@ -344,8 +344,6 @@ ifeq ($(DEBUG),y)
 else
 	WGET     := wget -cq
 	PATCH    := patch -s -b -N 
-	QUIET    := 2> /dev/null
-	QUIET    := >>$(BUILD_LOG) 2>&1
 	QUIET    := >>$(BUILD_LOG) 2>>$(ERROR_LOG)
 	MKDIR    := mkdir -p
 	RM       := rm -f
@@ -377,7 +375,7 @@ BIN_OPT   = $(BUILD_OPT) --with-$(GCC)
 ISL_OPT   = --disable-shared --enable-static $(WITH_GMP)
 CLOOG_OPT = --disable-shared --enable-static $(WITH_GMP)
 #see: xtensa-lx106-elf-gcc-4.8.2.exe -v
-GCC_OPT   = $(BUILD_OPT) $(WITH_GMP) $(WITH_MPFR) $(WITH_MPC) $(WITH_NLX) $(WITH_CLOOG) \
+GCC_OPT   = $(BUILD_OPT) $(WITH_GMP) $(WITH_MPFR) $(WITH_MPC) $(WITH_NLX) $(WITH_ISL) $(WITH_CLOOG) \
             --disable-libssp --disable-__cxa_atexit --disable-libstdcxx-pch \
 			--enable-target-optspace --without-long-double-128 --disable-libgomp --disable-libmudflap \
 			--disable-libquadmath --disable-libquadmath-support
@@ -454,19 +452,18 @@ SDK_TAR_DIR = $(SDK_VER)/$(SDK_ZIP)
 .PHONY: build get-tars
 .PHONY: info-start info-build info inst-info info-distrib
 .PHONY: distrib install strip compress clean clean-build clean-sdk
-#.PHONY: get-$(CURSES) get-$(ISL) get-$(CLOOG) get-$(EXPAT) get-$(GDB) get-$(LWIP)
 
 #*******************************************
 #************* Build Toolchain *************
 #*******************************************
 
 all:
-	@$(MAKE) info-start
+	@$(MAKE) $(MAKE_OPT) info-start
 	@$(MAKE) $(MAKE_OPT) info-build 2>>$(ERROR_LOG)
 	@$(MAKE) $(MAKE_OPT) build 2>>$(ERROR_LOG)
+	@$(MAKE) $(MAKE_OPT) build-tools 2>>$(ERROR_LOG)
 	@$(MAKE) $(MAKE_OPT) strip 2>>$(ERROR_LOG)
 	@$(MAKE) $(MAKE_OPT) compress 2>>$(ERROR_LOG)
-	@$(MAKE) $(MAKE_OPT) build-sdk-libs 2>>$(ERROR_LOG)
 	@$(MAKE) info
 	@cat build-start.txt; rm build-start.txt
 	@$(MAKE) $(MAKE_OPT) distrib
@@ -479,27 +476,19 @@ install:
 	$(MAKE) $(MAKE_OPT) all
 
 #*******************************************
-#************* single builds ***************
+#************* build targets ***************
 #*******************************************
 
-build:
-	$(MAKE) $(MAKE_OPT) build-$(GMP)
-	$(MAKE) $(MAKE_OPT) build-$(MPFR)
-	$(MAKE) $(MAKE_OPT) build-$(ISL)
-	$(MAKE) $(MAKE_OPT) build-$(CLOOG)
-	$(MAKE) $(MAKE_OPT) build-$(MPC)
-	$(MAKE) $(MAKE_OPT) build-$(BIN)
-	$(MAKE) $(MAKE_OPT) build-$(GCC)-1
-	$(MAKE) $(MAKE_OPT) build-$(NLX)
-	$(MAKE) $(MAKE_OPT) build-$(GCC)-2
-	$(MAKE) $(MAKE_OPT) build-$(HAL)
-	$(MAKE) $(MAKE_OPT) build-sdk-libs
+#**** allow some parallelization in build process
 
-build-tools:
-	$(MAKE) $(MAKE_OPT) build-$(GDB) 
-	$(MAKE) $(MAKE_OPT) build-$(LWIP)
-	$(MAKE) $(MAKE_OPT) build-$(EXPAT) 
-	$(MAKE) $(MAKE_OPT) build-$(CURSES)
+build: build-$(GMP) build-$(MPFR) build-$(ISL) build-$(CLOOG) build-$(MPC) build-$(BIN)
+	+$(MAKE) $(MAKE_OPT) build-$(GCC)-1
+	+$(MAKE) $(MAKE_OPT) build-$(NLX)
+	+$(MAKE) $(MAKE_OPT) build-$(GCC)-2
+	+$(MAKE) $(MAKE_OPT) build-$(HAL)
+	+$(MAKE) $(MAKE_OPT) build-sdk-libs
+
+build-tools: build-$(GDB) build-$(LWIP) build-$(EXPAT) build-$(CURSES)
 
 get-tars: $(TAR_DIR) get-$(CURSES) $(GMP_TAR) $(MPFR_TAR) get-$(ISL) get-$(CLOOG) $(MPC_TAR) get-$(EXPAT) $(BIN_TAR) $(GCC_TAR) $(NLX_TAR) $(HAL_TAR) if_isl_tar if_cloog_tar if_lwip_tar if_gdb_tar
 
@@ -571,32 +560,32 @@ build-sdk-libs:  $(SOURCE_DIR)/.$(SDK).installed $(SOURCE_DIR)/.sdk-libs.install
 
 build-$(CURSES): | $(TOOLCHAIN)
 ifeq ($(USE_CURSES),y)
-	$(MAKE) $(MAKE_OPT) $(SOURCE_DIR)/.$(CURSES).installed
+	+$(MAKE) $(MAKE_OPT) $(SOURCE_DIR)/.$(CURSES).installed
 endif
 
 build-$(ISL): | $(TOOLCHAIN)
 ifeq ($(USE_ISL),y)
-	$(MAKE) $(MAKE_OPT) $(SOURCE_DIR)/.$(ISL).installed
+	+$(MAKE) $(MAKE_OPT) $(SOURCE_DIR)/.$(ISL).installed
 endif
 
 build-$(CLOOG): | $(TOOLCHAIN)
 ifeq ($(USE_CLOOG),y)
-	$(MAKE) $(MAKE_OPT) $(SOURCE_DIR)/.$(CLOOG).installed
+	+$(MAKE) $(MAKE_OPT) $(SOURCE_DIR)/.$(CLOOG).installed
 endif
 
 build-$(EXPAT): | $(TOOLCHAIN)
 ifeq ($(USE_EXPAT),y)
-	$(MAKE) $(MAKE_OPT) $(SOURCE_DIR)/.$(EXPAT).installed
+	+$(MAKE) $(MAKE_OPT) $(SOURCE_DIR)/.$(EXPAT).installed
 endif
 
 build-$(GDB): | $(TOOLCHAIN)
 ifeq ($(USE_GDB),y)
-	$(MAKE) $(MAKE_OPT) $(SOURCE_DIR)/.$(GDB).installed
+	+$(MAKE) $(MAKE_OPT) $(SOURCE_DIR)/.$(GDB).installed
 endif
 
 build-$(LWIP): | $(TOOLCHAIN)
 ifeq ($(USE_LWIP),y)
-	$(MAKE) $(MAKE_OPT) $(SOURCE_DIR)/.$(LWIP).installed
+	+$(MAKE) $(MAKE_OPT) $(SOURCE_DIR)/.$(LWIP).installed
 endif
 
 strip:
@@ -834,7 +823,7 @@ define Install_Modul
 	@echo "#### Install $1..."
 	@echo "##########################"
 	@#### "Install: Path=$(SAFEPATH); $(MAKE) $(MAKE_OPT) $3=$(INST_OPT) -C $2"
-	@PATH=$(SAFEPATH); $(MAKE) $(MAKE_OPT) $3 -C $2 $(QUIET)
+	+@PATH=$(SAFEPATH); $(MAKE) $(MAKE_OPT) $3 -C $2 $(QUIET)
 	@touch $(SOURCE_DIR)/.$1.installed
 	$(OUTPUT_DATE)
 endef
