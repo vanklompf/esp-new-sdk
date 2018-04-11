@@ -166,8 +166,8 @@ ISL_VERSION  = 0.18
 CLOOG_VERSION  = 0.18.1
 CLOOG_VERSION  = 0.18.4
 
-LWIP_VERSION = esp-open-lwip
 LWIP_VERSION = lwip2
+LWIP_VERSION = esp-open-lwip
 
 #*******************************************
 #************* define variables ************
@@ -585,7 +585,7 @@ endif
 
 build-$(LWIP): | $(TOOLCHAIN)
 ifeq ($(USE_LWIP),y)
-	+$(MAKE) $(MAKE_OPT) $(SOURCE_DIR)/.$(LWIP).installed
+	$(MAKE) $(SOURCE_DIR)/.$(LWIP).installed
 endif
 
 strip:
@@ -803,18 +803,18 @@ define Config_Modul
 	@echo "##########################"
 	@echo "#### Config $1..."
 	@if ! test -f $(SOURCE_DIR)/.$1.patched; then $(MAKE) $(MAKE_OPT) $1_patch && touch $(SOURCE_DIR)/.$1.patched; fi
-	@$(MKDIR) $2
-	@#### Config: Path=$(SAFEPATH); cd $2 ../$(CONF_OPT) $3 $4
-	@PATH=$(SAFEPATH); cd $2; ../$(CONF_OPT) $3 $4 $(QUIET)
+	$(MKDIR) $2
+	#### Config: Path=$(SAFEPATH); cd $2 ../$(CONF_OPT) $3 $4
+	PATH=$(SAFEPATH); cd $2; ../$(CONF_OPT) $3 $4 $(QUIET)
 	@touch $(SOURCE_DIR)/.$1.configured
 endef
 
 define Build_Modul
 	@echo "##########################"
 	@echo "#### Build $1..."
-	@#### Build: Path=$(SAFEPATH); $3 $(MAKE) $(MAKE_OPT) $4 -C $2
+	#### Build: Path=$(SAFEPATH); $3 $(MAKE) $(MAKE_OPT) $4 -C $2
 	@#### for '+' token see https://www.gnu.org/software/make/manual/html_node/Error-Messages.html
-	+@PATH=$(SAFEPATH); $3 $(MAKE) $(MAKE_OPT) $4 -C $2 $(QUIET) 
+	+PATH=$(SAFEPATH); $3 $(MAKE) $(MAKE_OPT) $4 -C $2
 	@touch $(SOURCE_DIR)/.$1.builded
 endef
 
@@ -993,11 +993,11 @@ $(SOURCE_DIR)/.$(LWIP).loaded:
 $(SOURCE_DIR)/.$(LWIP).extracted: $(SOURCE_DIR)/.$(LWIP).loaded
 	$(call Extract_Modul,$(LWIP),$(LWIP_DIR),$(LWIP_TAR),$(LWIP_DIR)/$(LWIP_TAR_DIR))
 $(SOURCE_DIR)/.$(LWIP).configured: $(SOURCE_DIR)/.$(LWIP).extracted
-	$(call Config_Modul,$(LWIP),$(BUILD_LWIP_DIR))
+####	$(#### Config_Modul,$(LWIP),$(BUILD_LWIP_DIR))
 $(SOURCE_DIR)/.$(LWIP).builded: $(SOURCE_DIR)/.$(LWIP).configured
-	$(call Build_Modul,$(LWIP),$(BUILD_LWIP_DIR) -f Makefile.open install CC=$(TOOLCHAIN)/bin/$(XGCC) AR=$(TOOLCHAIN)/bin/$(XAR) PREFIX=$(TOOLCHAIN))
+	$(call Build_Modul,$(LWIP),$(LWIP_DIR) -f Makefile.open CC=$(TOOLCHAIN)/bin/$(XGCC) AR=$(TOOLCHAIN)/bin/$(XAR) PREFIX=$(TOOLCHAIN))
 $(SOURCE_DIR)/.$(LWIP).installed: $(SOURCE_DIR)/.$(LWIP).builded
-	$(call Install_Modul,$(LWIP),$(BUILD_LWIP_DIR),$(INST_OPT))
+####	$(#### Install_Modul,$(LWIP),$(BUILD_LWIP_DIR),$(INST_OPT))
 	@cp -p -a $(LWIP_DIR)/include/arch $(LWIP_DIR)/include/lwip $(LWIP_DIR)/include/netif $(LWIP_DIR)/include/lwipopts.h $(TARGET_DIR)/include/
 
 #*******************************************
@@ -1149,7 +1149,7 @@ clean-sdk:
 	$(info #### clean-sdk...)
 	$(info ##########################)
 	-@rm -rf $(TOP_SDK)
-	-$(MAKE) $(MAKE_OPT) -C $(LWIP_DIR) -f Makefile.open clean
+	-@$(MAKE) $(MAKE_OPT) -C $(LWIP_DIR) -f Makefile.open clean
 
 purge: clean
 	$(info ##########################)
