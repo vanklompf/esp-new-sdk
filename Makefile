@@ -363,9 +363,14 @@ WITH_GMP  = --with-$(GMP)=$(COMP_LIB)/$(GMP)-$(GMP_VERSION)
 WITH_MPFR = --with-$(MPFR)=$(COMP_LIB)/$(MPFR)-$(MPFR_VERSION)
 WITH_MPC  = --with-$(MPC)=$(COMP_LIB)/$(MPC)-$(MPC_VERSION)
 WITH_NLX  = --with-$(NLX)
-WITH_ISL  = --with-$(ISL)=$(COMP_LIB)/$(ISL)-$(ISL_VERSION)
-WITH_CLOOG= --with-$(CLOOG)=$(COMP_LIB)/$(CLOOG)-$(CLOOG_VERSION)
-
+WITH_ISL  =
+ifeq ($(USE_ISL),y)
+	WITH_ISL  = --with-$(ISL)=$(COMP_LIB)/$(ISL)-$(ISL_VERSION)
+endif
+WITH_CLOOG=
+ifeq ($(USE_ISL),y)
+	WITH_CLOOG= --with-$(CLOOG)=$(COMP_LIB)/$(CLOOG)-$(CLOOG_VERSION)
+endif
 GMP_OPT   = --disable-shared --enable-static
 MPFR_OPT  = --disable-shared --enable-static
 MPC_OPT   = --disable-shared --enable-static
