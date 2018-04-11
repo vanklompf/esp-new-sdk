@@ -6,7 +6,7 @@
 # Credits to Paul Sokolovsky (@pfalcon) for esp-open-sdk
 # Credits to Ivan Grokhotkov (@igrr) for compiler options (NLX_OPT) and library modifications
 #
-# Last edit: 20.03.2018
+# Last edit: 11.04.2018
 
 #*******************************************
 #************** configuration **************
@@ -25,7 +25,7 @@ USE_CURSES = y
 # build lwip-lib
 USE_LWIP = y
 # build isl
-USE_ISL = n
+USE_ISL = y
 # XML-Parser
 USE_EXPAT = y
 # The Chunky Loop Generator
@@ -451,7 +451,7 @@ SDK_TAR_DIR = $(SDK_VER)/$(SDK_ZIP)
 #************** rules section **************
 #*******************************************
 
-.PHONY: build build-bins build-libraries get-tars
+.PHONY: build get-tars
 .PHONY: info-start info-build info inst-info info-distrib
 .PHONY: distrib install strip compress clean clean-build clean-sdk
 #.PHONY: get-$(CURSES) get-$(ISL) get-$(CLOOG) get-$(EXPAT) get-$(GDB) get-$(LWIP)
@@ -460,17 +460,15 @@ SDK_TAR_DIR = $(SDK_VER)/$(SDK_ZIP)
 #************* Build Toolchain *************
 #*******************************************
 
-# splitted builds to prevent Travis from from assuming a stalled build
 all:
 	@$(MAKE) info-start
-	@$(MAKE) info-build
-	@$(MAKE) $(MAKE_OPT) build-bins 2>>$(ERROR_LOG)
+	@$(MAKE) $(MAKE_OPT) info-build build-bins 2>>$(ERROR_LOG)
 	@$(MAKE) $(MAKE_OPT) build 2>>$(ERROR_LOG)
+	@$(MAKE) $(MAKE_OPT) strip 2>>$(ERROR_LOG)
 	@$(MAKE) $(MAKE_OPT) compress 2>>$(ERROR_LOG)
 	@$(MAKE) $(MAKE_OPT) build-sdk-libs 2>>$(ERROR_LOG)
 	@$(MAKE) info
 	@cat build-start.txt; rm build-start.txt
-	@$(MAKE) $(MAKE_OPT) strip
 	@$(MAKE) $(MAKE_OPT) distrib
 	@$(OUTPUT_DATE)
 	@echo -e "\07"
@@ -485,22 +483,23 @@ install:
 #*******************************************
 
 build:
-	$(MAKE) $(MAKE_OPT) build-$(GCC)-1 
-	$(MAKE) $(MAKE_OPT) build-$(NLX) 
-	$(MAKE) $(MAKE_OPT) build-$(GCC)-2 
-	$(MAKE) $(MAKE_OPT) build-$(HAL) 
+	$(MAKE) $(MAKE_OPT) build-$(GMP)
+	$(MAKE) $(MAKE_OPT) build-$(MPFR)
+	$(MAKE) $(MAKE_OPT) build-$(ISL)
+	$(MAKE) $(MAKE_OPT) build-$(CLOOG)
+	$(MAKE) $(MAKE_OPT) build-$(MPC)
+	$(MAKE) $(MAKE_OPT) build-$(BIN)
+	$(MAKE) $(MAKE_OPT) build-$(GCC)-1
+	$(MAKE) $(MAKE_OPT) build-$(NLX)
+	$(MAKE) $(MAKE_OPT) build-$(GCC)-2
+	$(MAKE) $(MAKE_OPT) build-$(HAL)
 	$(MAKE) $(MAKE_OPT) build-sdk-libs
 
-build-bins: build-$(GMP) build-$(MPFR) build-$(ISL) build-$(CLOOG) build-$(MPC) build-$(BIN)
 build-tools:
 	$(MAKE) $(MAKE_OPT) build-$(GDB) 
 	$(MAKE) $(MAKE_OPT) build-$(LWIP)
 	$(MAKE) $(MAKE_OPT) build-$(EXPAT) 
 	$(MAKE) $(MAKE_OPT) build-$(CURSES)
-	
-# prefetch for travis Osx-build-2
-get-gcc-src-dir:
-	$(MAKE) $(MAKE_OPT) $(SOURCE_DIR)/.$(GCC).extracted
 
 get-tars: $(TAR_DIR) get-$(CURSES) $(GMP_TAR) $(MPFR_TAR) get-$(ISL) get-$(CLOOG) $(MPC_TAR) get-$(EXPAT) $(BIN_TAR) $(GCC_TAR) $(NLX_TAR) $(HAL_TAR) if_isl_tar if_cloog_tar if_lwip_tar if_gdb_tar
 
