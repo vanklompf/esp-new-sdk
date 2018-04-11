@@ -6,7 +6,7 @@
 # Credits to Paul Sokolovsky (@pfalcon) for esp-open-sdk
 # Credits to Ivan Grokhotkov (@igrr) for compiler options (NLX_OPT) and library modifications
 #
-# Last edit: 11.04.2018
+# Last edit: 12.04.2018
 
 #*******************************************
 #************** configuration **************
@@ -803,18 +803,18 @@ define Config_Modul
 	@echo "##########################"
 	@echo "#### Config $1..."
 	@if ! test -f $(SOURCE_DIR)/.$1.patched; then $(MAKE) $(MAKE_OPT) $1_patch && touch $(SOURCE_DIR)/.$1.patched; fi
-	$(MKDIR) $2
-	#### Config: Path=$(SAFEPATH); cd $2 ../$(CONF_OPT) $3 $4
-	PATH=$(SAFEPATH); cd $2; ../$(CONF_OPT) $3 $4 $(QUIET)
+	@$(MKDIR) $2
+	@#### Config: Path=$(SAFEPATH); cd $2 ../$(CONF_OPT) $3 $4
+	@PATH=$(SAFEPATH); cd $2; ../$(CONF_OPT) $3 $4 $(QUIET)
 	@touch $(SOURCE_DIR)/.$1.configured
 endef
 
 define Build_Modul
 	@echo "##########################"
 	@echo "#### Build $1..."
-	#### Build: Path=$(SAFEPATH); $3 $(MAKE) $(MAKE_OPT) $4 -C $2
+	@#### Build: Path=$(SAFEPATH); $3 $(MAKE) $(MAKE_OPT) $4 -C $2
 	@#### for '+' token see https://www.gnu.org/software/make/manual/html_node/Error-Messages.html
-	+PATH=$(SAFEPATH); $3 $(MAKE) $(MAKE_OPT) $4 -C $2
+	+@PATH=$(SAFEPATH); $3 $(MAKE) $(MAKE_OPT) $4 -C $2 $(QUIET)
 	@touch $(SOURCE_DIR)/.$1.builded
 endef
 
