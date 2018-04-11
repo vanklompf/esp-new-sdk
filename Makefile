@@ -462,7 +462,7 @@ SDK_TAR_DIR = $(SDK_VER)/$(SDK_ZIP)
 
 all:
 	@$(MAKE) info-start
-	@$(MAKE) $(MAKE_OPT) info-build build-bins 2>>$(ERROR_LOG)
+	@$(MAKE) $(MAKE_OPT) info-build 2>>$(ERROR_LOG)
 	@$(MAKE) $(MAKE_OPT) build 2>>$(ERROR_LOG)
 	@$(MAKE) $(MAKE_OPT) strip 2>>$(ERROR_LOG)
 	@$(MAKE) $(MAKE_OPT) compress 2>>$(ERROR_LOG)
