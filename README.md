@@ -1,3 +1,5 @@
+[![Travis Build Status](https://travis-ci.org/Juppit/esp-new-sdk.svg?branch=master)](https://travis-ci.org/Juppit/esp-new-sdk)
+[![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/Juppit/esp-new-sdk?svg=true)](https://ci.appveyor.com/project/Juppit/esp-new-sdk))
 # esp-new-sdk
 
 Makefile to build the toolchain and a complete standalone SDK for Espressif ESP8266.
