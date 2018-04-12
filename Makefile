@@ -27,11 +27,11 @@ USE_LWIP = y
 # build isl
 USE_ISL = n
 # XML-Parser
-USE_EXPAT = y
+USE_EXPAT = n
 # The Chunky Loop Generator
 USE_CLOOG = n
 # build debugger
-USE_GDB = y
+USE_GDB = n
 
 BUILDPATH = /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:
 
@@ -368,7 +368,7 @@ ifeq ($(USE_ISL),y)
 	WITH_ISL  = --with-$(ISL)=$(COMP_LIB)/$(ISL)-$(ISL_VERSION)
 endif
 WITH_CLOOG=
-ifeq ($(USE_ISL),y)
+ifeq ($(USE_CLOOG),y)
 	WITH_CLOOG= --with-$(CLOOG)=$(COMP_LIB)/$(CLOOG)-$(CLOOG_VERSION)
 endif
 GMP_OPT   = --disable-shared --enable-static
@@ -466,7 +466,6 @@ all:
 	@$(MAKE) $(MAKE_OPT) info-start
 	@$(MAKE) $(MAKE_OPT) info-build 2>>$(ERROR_LOG)
 	@$(MAKE) $(MAKE_OPT) build 2>>$(ERROR_LOG)
-	@$(MAKE) $(MAKE_OPT) build-tools 2>>$(ERROR_LOG)
 	@$(MAKE) $(MAKE_OPT) strip 2>>$(ERROR_LOG)
 	@$(MAKE) $(MAKE_OPT) compress 2>>$(ERROR_LOG)
 	@$(MAKE) info
@@ -493,7 +492,7 @@ build: build-$(GMP) build-$(MPFR) build-$(ISL) build-$(CLOOG) build-$(MPC) build
 	+$(MAKE) $(MAKE_OPT) build-$(HAL)
 	+$(MAKE) $(MAKE_OPT) build-sdk-libs
 
-build-tools: build-$(GDB) build-$(LWIP) build-$(EXPAT) build-$(CURSES)
+tools: build-$(LWIP) build-$(GDB) build-$(EXPAT) build-$(CURSES)
 
 get-tars: $(TAR_DIR) get-$(CURSES) $(GMP_TAR) $(MPFR_TAR) get-$(ISL) get-$(CLOOG) $(MPC_TAR) get-$(EXPAT) $(BIN_TAR) $(GCC_TAR) $(NLX_TAR) $(HAL_TAR) if_isl_tar if_cloog_tar if_lwip_tar if_gdb_tar
 
@@ -538,8 +537,6 @@ $(COMP_LIB):
 	@$(MKDIR) $(COMP_LIB)/$(GMP)-$(GMP_VERSION)
 	@$(MKDIR) $(COMP_LIB)/$(MPFR)-$(MPFR_VERSION)
 	@$(MKDIR) $(COMP_LIB)/$(MPC)-$(MPC_VERSION)
-	@$(MKDIR) $(COMP_LIB)/$(ISL)-$(ISL_VERSION)
-	@$(MKDIR) $(COMP_LIB)/$(CLOOG)-$(CLOOG_VERSION)
 
 $(DIST_DIR):
 	@$(MKDIR) $(DIST_DIR)
@@ -570,26 +567,31 @@ endif
 
 build-$(ISL): | $(TOOLCHAIN)
 ifeq ($(USE_ISL),y)
+	@$(MKDIR) $(COMP_LIB)/$(ISL)-$(ISL_VERSION)
 	+$(MAKE) $(MAKE_OPT) $(SOURCE_DIR)/.$(ISL).installed
 endif
 
 build-$(CLOOG): | $(TOOLCHAIN)
 ifeq ($(USE_CLOOG),y)
+	@$(MKDIR) $(COMP_LIB)/$(CLOOG)-$(CLOOG_VERSION)
 	+$(MAKE) $(MAKE_OPT) $(SOURCE_DIR)/.$(CLOOG).installed
 endif
 
 build-$(EXPAT): | $(TOOLCHAIN)
 ifeq ($(USE_EXPAT),y)
+	@$(MKDIR) $(COMP_LIB)/$(EXPAT)-$(EXPAT_VERSION)
 	+$(MAKE) $(MAKE_OPT) $(SOURCE_DIR)/.$(EXPAT).installed
 endif
 
 build-$(GDB): | $(TOOLCHAIN)
 ifeq ($(USE_GDB),y)
+	@$(MKDIR) $(COMP_LIB)/$(GDB)-$(GDB_VERSION)
 	+$(MAKE) $(MAKE_OPT) $(SOURCE_DIR)/.$(GDB).installed
 endif
 
 build-$(LWIP): | $(TOOLCHAIN)
 ifeq ($(USE_LWIP),y)
+	@$(MKDIR) $(COMP_LIB)/$(LWIP)-$(LWIP_VERSION)
 	$(MAKE) $(SOURCE_DIR)/.$(LWIP).installed
 endif
 
