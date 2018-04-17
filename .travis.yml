@@ -22,12 +22,14 @@ jobs:
         - cd automake-1.15; ./configure -q --prefix=/usr && make V=0; sudo make V=0 install; cd ..; rm -fR automake-1.15
         - echo -e "travis_fold:end:install-automake"
         - cd $TRAVIS_BUILD_DIR
-        - travis_wait 45 make -j3
-      cache: false
+        - travis_wait 45 make -j
+        - type distrib/*error.log
+        cache: false
     - os: osx
       script:
         - cd $TRAVIS_BUILD_DIR
-        - travis_wait 45 make -j3
+        - travis_wait 45 make -j
+        - type distrib/*error.log
       cache: false
 
 before_install:
