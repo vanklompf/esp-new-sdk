@@ -22,7 +22,7 @@ USE_STRIP = y
 USE_COMPRESS = n
 
 # The Curses library "cursor optimization"
-USE_CURSES = y
+USE_CURSES = n
 # Integer Set Library
 USE_ISL = y
 # XML-Parser
