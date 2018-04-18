@@ -861,14 +861,14 @@ libstdc++: $(TARGET_DIR)/lib/libstdc++.a
 define Load_Modul
 	@$(MKDIR) $(TAR_DIR)
 	@if ! test -s $3; then echo "##########################"; fi
-	@if ! test -s $3; then echo "#### Load $1..."; fi
+	@if ! test -s $3; then echo "#### Load $1..." | tee -a $(ERROR_LOG); fi
 	@if ! test -s $3; then $(WGET) $2 --output-document $3 && $(RM) $(SOURCE_DIR)/.$1.*ed; fi
 	@touch $(SOURCE_DIR)/.$1.loaded
 endef
 
 define Extract_Modul
 	@if ! test -f $(SOURCE_DIR)/.$1.extracted; then echo "##########################"; fi
-	@if ! test -f $(SOURCE_DIR)/.$1.extracted; then echo "#### Extract $1..."; fi
+	@if ! test -f $(SOURCE_DIR)/.$1.extracted; then echo "#### Extract $1..." | tee -a $(ERROR_LOG); fi
 	@#### Extract: if not exist $(SOURCE_DIR)/.$1.extracted then $(RMDIR) $2 && $(MKDIR) $2 && untar $3 to $2
 	@if ! test -f $(SOURCE_DIR)/.$1.extracted; then $(RMDIR) $2 && $(MKDIR) $2 && $(UNTAR) $3 -C $2; fi
 	@#### Extract: if $4 exists then mv -f $4/* to $2 && $(RMDIR) $4
@@ -878,8 +878,8 @@ endef
 
 define Config_Modul
 	@echo "##########################"
-	@echo "#### Config $1..."
-	@if ! test -f $(SOURCE_DIR)/.$1.patched; then $(MAKE) $(MAKE_OPT) $1_patch && touch $(SOURCE_DIR)/.$1.patched; fi
+	@echo "#### Config $1..." | tee -a $(ERROR_LOG)
+	+@if ! test -f $(SOURCE_DIR)/.$1.patched; then $(MAKE) $(MAKE_OPT) $1_patch && touch $(SOURCE_DIR)/.$1.patched; fi
 	@$(MKDIR) $2
 	@#### Config: Path=$(SAFEPATH); cd $2 ../$(CONF_OPT) $3 $4
 	@PATH=$(SAFEPATH); cd $2; ../$(CONF_OPT) $3 $4 $(QUIET)
@@ -888,7 +888,7 @@ endef
 
 define Build_Modul
 	@echo "##########################"
-	@echo "#### Build $1..."
+	@echo "#### Build $1..." | tee -a $(ERROR_LOG)
 	@#### Build: Path=$(SAFEPATH); $3 $(MAKE) $(MAKE_OPT) $4 -C $2
 	@#### for '+' token see https://www.gnu.org/software/make/manual/html_node/Error-Messages.html
 	+@PATH=$(SAFEPATH); $3 $(MAKE) $(MAKE_OPT) $4 -C $2 $(QUIET)
@@ -897,7 +897,7 @@ endef
 
 define Install_Modul
 	@echo "##########################"
-	@echo "#### Install $1..."
+	@echo "#### Install $1..." | tee -a $(ERROR_LOG)
 	@echo "##########################"
 	@#### "Install: Path=$(SAFEPATH); $(MAKE) $(MAKE_OPT) $3=$(INST_OPT) -C $2"
 	+@PATH=$(SAFEPATH); $(MAKE) $(MAKE_OPT) $3 -C $2 $(QUIET)
@@ -1069,13 +1069,16 @@ $(SOURCE_DIR)/.$(LWIP).loaded:
 	$(call Load_Modul,$(LWIP),$(LWIP_URL),$(LWIP_TAR))
 $(SOURCE_DIR)/.$(LWIP).extracted: $(SOURCE_DIR)/.$(LWIP).loaded
 	$(call Extract_Modul,$(LWIP),$(LWIP_DIR),$(LWIP_TAR),$(LWIP_DIR)/$(LWIP_TAR_DIR))
-$(SOURCE_DIR)/.$(LWIP).configured: $(SOURCE_DIR)/.$(LWIP).extracted
+$(SOURCE_DIR)/.$(LWIP).configured: $(SOURCE_DIR)/.$(LWIP).extracted \
+		$(SOURCE_DIR)/.$(GCC)-pass-2.installed
 ####	$(#### Config_Modul,$(LWIP),$(BUILD_LWIP_DIR))
+	+@if ! test -f $(SOURCE_DIR)/.$(LWIP).patched; then $(MAKE) $(LWIP)_patch && touch $(SOURCE_DIR)/.$(LWIP).patched; fi
 $(SOURCE_DIR)/.$(LWIP).builded: $(SOURCE_DIR)/.$(LWIP).configured
 	$(call Build_Modul,$(LWIP),$(LWIP_DIR) -f Makefile.open CC=$(TOOLCHAIN)/bin/$(XGCC) AR=$(TOOLCHAIN)/bin/$(XAR) PREFIX=$(TOOLCHAIN))
 $(SOURCE_DIR)/.$(LWIP).installed: $(SOURCE_DIR)/.$(LWIP).builded
 ####	$(#### Install_Modul,$(LWIP),$(BUILD_LWIP_DIR),$(INST_OPT))
 	@cp -p -a $(LWIP_DIR)/include/arch $(LWIP_DIR)/include/lwip $(LWIP_DIR)/include/netif $(LWIP_DIR)/include/lwipopts.h $(TARGET_DIR)/include/
+	@touch $@
 
 #*******************************************
 #*******************************************
