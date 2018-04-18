@@ -1,57 +1,62 @@
 sudo: false
 language: cpp
-jobs:
-  include:
-    - os: linux
+
+jobs: 
+  include: 
+    - stage: linux
       dist: trusty
-      addons:
+      os: linux
+      addons: 
         apt:
-          sources:
+          sources: 
             - ubuntu-toolchain-r-test
-          packages:
+          packages: 
             - bsdtar
             - gperf
             - texinfo
             - help2man
             - gcc-multilib
             - g++-multilib
-      script:
-        - echo -e "travis_fold:start:install-automake"
-        - cd $TRAVIS_BUILD_DIR
-        - wget -cq http://ftp.gnu.org/gnu/automake/automake-1.15.tar.xz; tar xf automake-1.15.tar.xz; rm automake-1.15.tar.xz
-        - cd automake-1.15; ./configure -q --prefix=/usr && make V=0; sudo make V=0 install; cd ..; rm -fR automake-1.15
-        - echo -e "travis_fold:end:install-automake"
-        - cd $TRAVIS_BUILD_DIR
-        - travis_wait 45 make -j
-        - type distrib/*error.log
-        cache: false
-    - os: osx
-      script:
-        - cd $TRAVIS_BUILD_DIR
-        - travis_wait 45 make -j
-        - type distrib/*error.log
       cache: false
+      script: 
+        - "echo -e \"travis_fold:start:install-automake\""
+        - "cd $TRAVIS_BUILD_DIR"
+        - "wget -cq http://ftp.gnu.org/gnu/automake/automake-1.15.tar.xz; tar xf automake-1.15.tar.xz; rm automake-1.15.tar.xz"
+        - "cd automake-1.15; ./configure -q --prefix=/usr && make V=0; sudo make V=0 install; cd ..; rm -fR automake-1.15"
+        - "echo -e \"travis_fold:end:install-automake\""
+        - "cd $TRAVIS_BUILD_DIR"
+        - "travis_wait 45 make -j3"
+      after_script:
+        - "cat distrib/Linux64-error.log"
+    - stage: macos
+      os: osx
+      script: 
+        - "cd $TRAVIS_BUILD_DIR"
+        - "travis_wait 45 make -j3"
+      after_script:
+        - "cat distrib/MacOS64-error.log"
+      cache: false      
 
-before_install:
-  # unset is needed for libhal
-  - test -n $CC  && unset CC
-  - test -n $CXX && unset CXX
-before_deploy:
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then DEPLOY_FILE=Linux-64-xtensa-lx106-elf.tar.gz; fi
-  - if [ "$TRAVIS_OS_NAME" == "osx"   ]; then DEPLOY_FILE=MacOS-64-xtensa-lx106-elf.tar.gz; fi
-deploy:
-      provider: releases
-      api_key: $DeployToken
-      overwrite: true
-      file_glob: true
-      file: distrib/* #$DEPLOY_FILE
-      skip_cleanup: true
-      on:
-        branches:
-          only:
-            - master
-            - /v\d+\.\d+[a-z]/
-        repo: Juppit/esp-new-sdk
-        tags: true
-notifications:
+before_deploy: 
+  - "if [ \"$TRAVIS_OS_NAME\" == \"linux\" ]; then DEPLOY_FILE=Linux-64-xtensa-lx106-elf.tar.gz; fi"
+  - "if [ \"$TRAVIS_OS_NAME\" == \"osx\"   ]; then DEPLOY_FILE=MacOS-64-xtensa-lx106-elf.tar.gz; fi"
+before_install: 
+  - "test -n $CC  && unset CC"
+  - "test -n $CXX && unset CXX"
+deploy: 
+  api_key: $DeployToken
+  file: distrib/*
+  file_glob: true
+  overwrite: true
+  provider: releases
+  skip_cleanup: true
+  true: 
+    branches: 
+      only: 
+        - master
+        - "/v\\d+\\.\\d+[a-z]/"
+    repo: Juppit/esp-new-sdk
+    tags: true
+
+notifications: 
   email: false

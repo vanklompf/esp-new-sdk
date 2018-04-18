@@ -10,5 +10,9 @@ backup
 *.txt
 *.tar.gz
 *.sh
+.appveyor*
+!appveyor.yml
 .travis*
 !.travis.yml
+Makefile*
+!Makefile
