@@ -24,11 +24,11 @@ USE_COMPRESS = n
 # The Curses library "cursor optimization"
 USE_CURSES = n
 # Integer Set Library
-USE_ISL = y
+USE_ISL = n
 # XML-Parser
-USE_EXPAT = y
+USE_EXPAT = n
 # The Chunky Loop Generator
-USE_CLOOG = y
+USE_CLOOG = n
 # build lwip-lib
 USE_LWIP = y
 # build debugger
