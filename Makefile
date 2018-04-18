@@ -951,7 +951,7 @@ $(SOURCE_DIR)/.$(MPC).loaded:
 $(SOURCE_DIR)/.$(MPC).extracted: $(SOURCE_DIR)/.$(MPC).loaded
 	$(call Extract_Modul,$(MPC),$(MPC_DIR),$(MPC_TAR),$(MPC_DIR)/$(MPC_TAR_DIR))
 $(SOURCE_DIR)/.$(MPC).configured: $(SOURCE_DIR)/.$(MPC).extracted \
-		$(SOURCE_DIR)/.$(GMP).installed $(SOURCE_DIR)/.$(MPFR).installed
+		$(SOURCE_DIR)/.$(MPFR).installed
 	$(call Config_Modul,$(MPC),$(BUILD_MPC_DIR),--prefix=$(COMP_LIB)/$(MPC)-$(MPC_VERSION) -with-$(MPFR)=$(COMP_LIB)/$(MPFR)-$(MPFR_VERSION) -with-$(GMP)=$(COMP_LIB)/$(GMP)-$(GMP_VERSION),$(MPC_OPT))
 $(SOURCE_DIR)/.$(MPC).builded: $(SOURCE_DIR)/.$(MPC).configured
 	$(call Build_Modul,$(MPC),$(BUILD_MPC_DIR))
@@ -1002,7 +1002,7 @@ $(SOURCE_DIR)/.$(CLOOG).loaded:
 $(SOURCE_DIR)/.$(CLOOG).extracted: $(SOURCE_DIR)/.$(CLOOG).loaded
 	$(call Extract_Modul,$(CLOOG),$(CLOOG_DIR),$(CLOOG_TAR),$(CLOOG_DIR)/$(CLOOG_TAR_DIR))
 $(SOURCE_DIR)/.$(CLOOG).configured: $(SOURCE_DIR)/.$(CLOOG).extracted \
-		$(SOURCE_DIR)/.$(GMP).installed $(SOURCE_DIR)/.$(ISL).installed
+		$(SOURCE_DIR)/.$(ISL).installed
 	$(call Config_Modul,$(CLOOG),$(BUILD_CLOOG_DIR),--prefix=$(COMP_LIB)/$(CLOOG)-$(CLOOG_VERSION),$(CLOOG_OPT))
 $(SOURCE_DIR)/.$(CLOOG).builded: $(SOURCE_DIR)/.$(CLOOG).configured
 	$(call Build_Modul,$(CLOOG),$(BUILD_CLOOG_DIR))
