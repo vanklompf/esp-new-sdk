@@ -504,45 +504,55 @@ install:
 
 #**** allow some parallelization in build process
 
+#build: build-$(GMP) build-$(EXPAT) build-$(CURSES) build-$(MPFR) build-$(ISL) build-$(GDB) build-$(MPC) build-$(BIN) 
 build: build-$(GMP) build-$(MPFR) build-$(ISL) build-$(CLOOG) build-$(MPC) build-$(BIN)
-	+$(MAKE) $(MAKE_OPT) build-$(GCC)-1
-	+$(MAKE) $(MAKE_OPT) build-$(NLX)
-	+$(MAKE) $(MAKE_OPT) build-$(GCC)-2
-	+$(MAKE) $(MAKE_OPT) build-$(HAL)
-	+$(MAKE) $(MAKE_OPT) build-sdk-libs
+	@$(MAKE) $(MAKE_OPT) build-$(CLOOG)
+	@$(MAKE) $(MAKE_OPT) build-$(GCC)-1
+	@$(MAKE) $(MAKE_OPT) build-$(NLX)
+	@$(MAKE) $(MAKE_OPT) build-$(GCC)-2
+	@$(MAKE) $(MAKE_OPT) build-$(HAL)
+	@$(MAKE) $(MAKE_OPT) build-sdk-libs
+	@$(MAKE) $(MAKE_OPT) build-$(LWIP) 
 
-tools: build-$(LWIP) build-$(GDB) build-$(EXPAT) build-$(CURSES)
+tools:
+	@$(MAKE) $(MAKE_OPT) info-tools
+	@for TOOL in $(TOOLS); do $(MAKE) build-$$TOOL $(QUIET) || exit 1 ; done
+	@$(MAKE) $(MAKE_OPT) tools-info
 
-get-tars: $(TAR_DIR) get-$(CURSES) $(GMP_TAR) $(MPFR_TAR) get-$(ISL) get-$(CLOOG) $(MPC_TAR) get-$(EXPAT) $(BIN_TAR) $(GCC_TAR) $(NLX_TAR) $(HAL_TAR) if_isl_tar if_cloog_tar if_lwip_tar if_gdb_tar
+#**** download all tar-files into tarballs
+
+get-tars: $(TAR_DIR)
+	@for TAR in $(CORE); do $(MAKE) $(SOURCE_DIR)/.$$TAR.loaded $(QUIET); done
+	@for TAR in $(TOOLS); do $(MAKE) get-$$TAR $(QUIET); done
 
 get-$(CURSES):
 ifeq ($(USE_CURSES),y)
-	$(MAKE) $(MAKE_OPT) $(CURSES_TAR)
+	+@$(MAKE) $(SOURCE_DIR)/.$(CURSES).loaded
 endif
 
 get-$(ISL):
 ifeq ($(USE_ISL),y)
-	$(MAKE) $(MAKE_OPT) $(ISL_TAR)
+	@$(MAKE) $(SOURCE_DIR)/.$(ISL).loaded
 endif
 
 get-$(CLOOG):
 ifeq ($(USE_CLOOG),y)
-	$(MAKE) $(MAKE_OPT) $(CLOOG_TAR)
+	@$(MAKE) $(SOURCE_DIR)/.$(CLOOG).loaded
 endif
 
 get-$(EXPAT):
 ifeq ($(USE_EXPAT),y)
-	$(MAKE) $(MAKE_OPT) $(EXPAT_TAR)
-endif
-
-get-$(GDB):
-ifeq ($(USE_GDB),y)
-	$(MAKE) $(MAKE_OPT) $(GDB_TAR)
+	+@$(MAKE) $(SOURCE_DIR)/.$(EXPAT).loaded
 endif
 
 get-$(LWIP):
 ifeq ($(USE_LWIP),y)
-	$(MAKE) $(MAKE_OPT) $(LWIP_TAR)
+	+@$(MAKE) $(SOURCE_DIR)/.$(LWIP).loaded
+endif
+
+get-$(GDB):
+ifeq ($(USE_GDB),y)
+	+@$(MAKE) $(SOURCE_DIR)/.$(GDB).loaded
 endif
 
 #**** create needed directories
@@ -558,6 +568,24 @@ $(COMP_LIB):
 	@$(MKDIR) $(COMP_LIB)/$(GMP)-$(GMP_VERSION)
 	@$(MKDIR) $(COMP_LIB)/$(MPFR)-$(MPFR_VERSION)
 	@$(MKDIR) $(COMP_LIB)/$(MPC)-$(MPC_VERSION)
+ifeq ($(USE_CURSES),y)
+	@$(MKDIR) $(COMP_LIB)/$(CURSES)-$(CURSES_VERSION)
+endif
+ifeq ($(USE_ISL),y)
+	@$(MKDIR) $(COMP_LIB)/$(ISL)-$(ISL_VERSION)
+endif
+ifeq ($(USE_CLOOG),y)
+	@$(MKDIR) $(COMP_LIB)/$(CLOOG)-$(CLOOG_VERSION)
+endif
+ifeq ($(USE_EXPAT),y)
+	@$(MKDIR) $(COMP_LIB)/$(EXPAT)-$(EXPAT_VERSION)
+endif
+ifeq ($(USE_LWIP),y)
+	@$(MKDIR) $(COMP_LIB)/$(LWIP)-$(LWIP_VERSION)
+endif
+ifeq ($(USE_GDB),y)
+	@$(MKDIR) $(COMP_LIB)/$(GDB)-$(GDB_VERSION)
+endif
 
 $(DIST_DIR):
 	@$(MKDIR) $(DIST_DIR)
@@ -611,10 +639,10 @@ ifeq ($(USE_GDB),y)
 	+$(MAKE) $(MAKE_OPT) $(SOURCE_DIR)/.$(GDB).installed
 endif
 
-build-$(LWIP): | $(TOOLCHAIN)
+build-$(LWIP): $(SOURCE_DIR)/.$(SDK).installed | $(TOOLCHAIN)
 ifeq ($(USE_LWIP),y)
 	@$(MKDIR) $(COMP_LIB)/$(LWIP)-$(LWIP_VERSION)
-	$(MAKE) $(SOURCE_DIR)/.$(LWIP).installed
+	@$(MAKE) $(MAKE_OPT) $(SOURCE_DIR)/.$(LWIP).installed
 endif
 
 #**** some helper targets
