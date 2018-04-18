@@ -483,7 +483,8 @@ SDK_TAR_DIR = $(SDK_VER)/$(SDK_ZIP)
 all:
 	@$(MAKE) $(MAKE_OPT) info-start
 	@$(MAKE) $(MAKE_OPT) info-build 2>>$(ERROR_LOG)
-	@$(MAKE) $(MAKE_OPT) build-comps 2>>$(ERROR_LOG)
+	@$(MAKE) $(MAKE_OPT) build-bins 2>>$(ERROR_LOG)
+	@$(MAKE) build-comps 2>>$(ERROR_LOG)
 	@$(MAKE) $(MAKE_OPT) build-core 2>>$(ERROR_LOG)
 	@$(MAKE) $(MAKE_OPT) build-tools 2>>$(ERROR_LOG)
 	@$(MAKE) $(MAKE_OPT) strip 2>>$(ERROR_LOG)
@@ -507,7 +508,8 @@ install:
 #**** allow some parallelization in build process
 
 # companian libraries
-build-comps: build-$(GMP) build-$(MPFR) build-$(MPC) build-$(BIN) build-$(ISL) build-$(CLOOG)
+build-bins: build-$(GMP) build-$(MPFR) build-$(MPC) build-$(BIN)
+build-comps: build-$(EXPAT) build-$(CURSES) build-$(ISL) build-$(CLOOG)
 # most core functions
 build-core:
 	@$(MAKE) $(MAKE_OPT) build-$(GCC)-1
