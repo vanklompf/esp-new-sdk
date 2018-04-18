@@ -6,7 +6,7 @@
 # Credits to Paul Sokolovsky (@pfalcon) for esp-open-sdk
 # Credits to Ivan Grokhotkov (@igrr) for compiler options (NLX_OPT) and library modifications
 #
-# Last edit: 12.04.2018
+# Last edit: 18.04.2018
 
 #*******************************************
 #************** configuration **************
@@ -20,16 +20,17 @@ DEBUG = n
 USE_STRIP = y
 # compress:	reduces used disc space by approx. 40-50 percent
 USE_COMPRESS = n
+
 # The Curses library "cursor optimization"
-USE_CURSES = y
-# build lwip-lib
-USE_LWIP = y
-# build isl
+USE_CURSES = n
+# Integer Set Library
 USE_ISL = n
 # XML-Parser
 USE_EXPAT = n
 # The Chunky Loop Generator
 USE_CLOOG = n
+# build lwip-lib
+USE_LWIP = n
 # build debugger
 USE_GDB = n
 
@@ -125,10 +126,12 @@ MPFR_VERSION = 3.1.4
 MPFR_VERSION = 3.1.5
 MPFR_VERSION = 3.1.6
 #MPFR_VERSION = 4.0.0
+MPFR_VERSION = 4.0.1
 
 MPC_VERSION  = 1.0.1
 MPC_VERSION  = 1.0.2
 MPC_VERSION  = 1.0.3
+MPC_VERSION  = 1.1.0
 
 GCC_VERSION  = 4.8.2
 GCC_VERSION  = 4.9.2
@@ -139,6 +142,7 @@ GCC_VERSION  = 5.5.0
 GCC_VERSION  = 6.4.0
 #GCC_VERSION = 7.1.0
 GCC_VERSION  = 7.2.0
+GCC_VERSION  = 7.3.0
 
 GDB_VERSION  = 7.5.1
 GDB_VERSION  = 7.10
@@ -146,6 +150,7 @@ GDB_VERSION  = 7.11
 GDB_VERSION  = 7.12
 GDB_VERSION  = 7.12.1
 GDB_VERSION  = 8.0.1
+GDB_VERSION  = 8.1
 
 BIN_VERSION  = 2.26
 BIN_VERSION  = 2.27
@@ -157,6 +162,8 @@ BIN_VERSION  = 2.30
 HAL_VERSION  = lx106-hal
 
 CURSES_VERSION  = 6.0
+CURSES_VERSION  = 6.1
+
 EXPAT_VERSION = 2.1.0
 EXPAT_VERSION = 2.2.5
 
@@ -325,6 +332,14 @@ ifeq ($(LWIP_VERSION),lwip2)
     LWIP_TAR_DIR = esp82xx-nonos-linklayer-master
 endif
 
+CORE = $(GMP) $(MPFR) $(ISL) $(CLOOG) $(MPC) $(EXPAT) $(CURSES) $(BIN) $(GCC) $(NLX) $(HAL) $(SDK)
+CORE_DIRS = $(GMP_DIR) $(MPFR_DIR) $(ISL_DIR) $(CLOOG_DIR) $(MPC_DIR) $(EXPAT_DIR) $(CURSES_DIR) $(BIN_DIR) $(GCC_DIR) $(NLX_DIR) $(HAL_DIR) $(SDK_DIR)
+BUILD_CORE_DIRS = $(BUILD_GMP_DIR) $(BUILD_MPFR_DIR) $(BUILD_ISL_DIR) $(BUILD_CLOOG_DIR) $(BUILD_MPC_DIR) $(BUILD_EXPAT_DIR) $(BUILD_CURSES_DIR) $(BUILD_BIN_DIR) \
+	$(BUILD_GCC_DIR)-pass-1 $(BUILD_NLX_DIR) $(BUILD_GCC_DIR)-pass-2 $(BUILD_HAL_DIR)
+TOOLS = $(LWIP) $(GDB)
+TOOL_DIRS = $(LWIP_DIR) $(GDB_DIR)
+BUILD_TOOL_DIRS = $(BUILD_LWIP_DIR) $(BUILD_GDB_DIR)
+
 ifeq ($(DEBUG),y)
 	WGET     := wget -c --progress=dot:binary
 	PATCH    := patch -b -N
@@ -360,12 +375,15 @@ else
 endif
 
 WITH_GMP  = --with-$(GMP)=$(COMP_LIB)/$(GMP)-$(GMP_VERSION)
+WITH_GMP_PREFIX = --with-$(GMP)-prefix=$(COMP_LIB)/$(GMP)-$(GMP_VERSION)
 WITH_MPFR = --with-$(MPFR)=$(COMP_LIB)/$(MPFR)-$(MPFR_VERSION)
 WITH_MPC  = --with-$(MPC)=$(COMP_LIB)/$(MPC)-$(MPC_VERSION)
 WITH_NLX  = --with-$(NLX)
 WITH_ISL  =
+WITH_ISL_PREFIX  =
 ifeq ($(USE_ISL),y)
 	WITH_ISL  = --with-$(ISL)=$(COMP_LIB)/$(ISL)-$(ISL_VERSION)
+	WITH_ISL_PREFIX = --with-$(ISL)-prefix=$(COMP_LIB)/$(ISL)-$(ISL_VERSION)
 endif
 WITH_CLOOG=
 ifeq ($(USE_CLOOG),y)
@@ -377,8 +395,8 @@ MPC_OPT   = --disable-shared --enable-static
 BUILD_OPT = --enable-werror=no --disable-multilib --disable-nls --disable-shared --disable-threads \
             --with-gnu-as --with-gnu-ld
 BIN_OPT   = $(BUILD_OPT) --with-$(GCC)
-ISL_OPT   = --disable-shared --enable-static $(WITH_GMP)
-CLOOG_OPT = --disable-shared --enable-static $(WITH_GMP)
+ISL_OPT   = --disable-shared --enable-static $(WITH_GMP_PREFIX)
+CLOOG_OPT = --disable-shared --enable-static $(WITH_GMP_PREFIX) $(WITH_ISL_PREFIX)
 #see: xtensa-lx106-elf-gcc-4.8.2.exe -v
 GCC_OPT   = $(BUILD_OPT) $(WITH_GMP) $(WITH_MPFR) $(WITH_MPC) $(WITH_NLX) $(WITH_ISL) $(WITH_CLOOG) \
             --disable-libssp --disable-__cxa_atexit --disable-libstdcxx-pch \
@@ -455,7 +473,7 @@ SDK_TAR_DIR = $(SDK_VER)/$(SDK_ZIP)
 #*******************************************
 
 .PHONY: build get-tars
-.PHONY: info-start info-build info inst-info info-distrib
+.PHONY: info-start info-build info-tools info inst-info info-distrib
 .PHONY: distrib install strip compress clean clean-build clean-sdk
 
 #*******************************************
@@ -468,7 +486,8 @@ all:
 	@$(MAKE) $(MAKE_OPT) build 2>>$(ERROR_LOG)
 	@$(MAKE) $(MAKE_OPT) strip 2>>$(ERROR_LOG)
 	@$(MAKE) $(MAKE_OPT) compress 2>>$(ERROR_LOG)
-	@$(MAKE) info
+	@$(MAKE) $(MAKE_OPT) info
+	@$(MAKE) $(MAKE_OPT) tools-info
 	@cat build-start.txt; rm build-start.txt
 	@$(MAKE) $(MAKE_OPT) distrib
 	@$(OUTPUT_DATE)
@@ -476,8 +495,8 @@ all:
 
 install:
 	@rm $(SOURCE_DIR)/.*.installed
-	$(MAKE) info-install
-	$(MAKE) $(MAKE_OPT) all
+	@$(MAKE) info-install
+	@$(MAKE) $(MAKE_OPT) all
 
 #*******************************************
 #************* build targets ***************
@@ -526,6 +545,8 @@ ifeq ($(USE_LWIP),y)
 	$(MAKE) $(MAKE_OPT) $(LWIP_TAR)
 endif
 
+#**** create needed directories
+
 $(SOURCE_DIR):
 	@$(MKDIR) $(SOURCE_DIR)
 
@@ -562,6 +583,7 @@ build-sdk-libs:  $(SOURCE_DIR)/.$(SDK).installed $(SOURCE_DIR)/.sdk-libs.install
 
 build-$(CURSES): | $(TOOLCHAIN)
 ifeq ($(USE_CURSES),y)
+	@$(MKDIR) $(COMP_LIB)/$(CURSES)-$(CURSES_VERSION)
 	+$(MAKE) $(MAKE_OPT) $(SOURCE_DIR)/.$(CURSES).installed
 endif
 
@@ -595,19 +617,21 @@ ifeq ($(USE_LWIP),y)
 	$(MAKE) $(SOURCE_DIR)/.$(LWIP).installed
 endif
 
+#**** some helper targets
+
 strip:
 ifeq ($(USE_STRIP),y)
-	$(MAKE) $(MAKE_OPT) $(SOURCE_DIR)/.$(SDK).stripped
+	@$(MAKE) $(MAKE_OPT) $(SOURCE_DIR)/.$(SDK).stripped
 endif
 
 compress:
 ifeq ($(USE_COMPRESS),y)
-	$(MAKE) $(MAKE_OPT) $(SOURCE_DIR)/.$(SDK).compressed
+	@$(MAKE) $(MAKE_OPT) $(SOURCE_DIR)/.$(SDK).compressed
 endif
 
 distrib:
 ifeq ($(USE_DISTRIB),y)
-	$(MAKE) $(MAKE_OPT) $(SOURCE_DIR)/.$(SDK).distributed
+	@$(MAKE) $(MAKE_OPT) $(SOURCE_DIR)/.$(SDK).distributed
 endif
 
 #*******************************************
@@ -630,6 +654,23 @@ info-build:
 	$(info ##########################)
 	$(info #### Build Toolchain...)
 	$(info ##########################)
+
+info-tools:
+	$(info ##########################)
+	$(info #### Build Tools...)
+	$(info ##########################)
+
+more-info:
+	$(info +------------------------------------------------+)
+	$(info | Additional tools were builded:)
+	$(info |)
+ifeq ($(USE_GDB),y)
+	$(info |   GDB      $(GDB_VERSION))
+endif
+ifeq ($(USE_LWIP),y)
+	$(info |   LWIP     $(LWIP_VERSION))
+endif
+	$(info +------------------------------------------------+)
 
 info-install:
 	$(info ##########################)
@@ -659,18 +700,19 @@ endif
 	$(info |   GCC      $(GCC_VERSION))
 	$(info |   NEWLIB   $(NLX_VERSION))
 	$(info |   LIBHAL   $(HAL_VERSION))
+	$(info |)
+	$(info |   SDK      $(SDK_VERSION))
+	$(info +------------------------------------------------+)
+
+tools-info:
+	$(info +------------------------------------------------+)
+	$(info | Additional tools were builded:)
+	$(info |)
 ifeq ($(USE_GDB),y)
 	$(info |   GDB      $(GDB_VERSION))
 endif
 ifeq ($(USE_LWIP),y)
 	$(info |   LWIP     $(LWIP_VERSION))
-endif
-	$(info |)
-	$(info |   SDK      $(SDK_VERSION))
-ifeq ($(USE_DISTRIB),y)
-	$(info |)
-	$(info |   Distribution:)
-	$(info |     $(DISTRIB).tar.gz)
 endif
 	$(info +------------------------------------------------+)
 
@@ -1142,26 +1184,33 @@ $(SDK_DIR)/user_rf_cal_sector_set.o: $(SOURCE_DIR)/.$(SDK).extracted $(TOOLCHAIN
 #*******************************************
 #************** clean section **************
 #*******************************************
-clean: clean-sdk clean-build
+clean: clean-build clean-sdk
 
 clean-build:
 	$(info ##########################)
 	$(info #### cleaning...)
 	$(info ##########################)
-	-@$(RMDIR) $(TOOLCHAIN) $(COMP_LIB)/ $(BUILD_GMP_DIR) $(BUILD_MPFR_DIR) $(BUILD_MPC_DIR) $(BUILD_CURSES_DIR) $(BUILD_BIN_DIR) $(BUILD_ISL_DIR) $(BUILD_CLOOG_DIR)
-	-@$(RMDIR) $(BUILD_GCC_DIR)-pass-1 $(BUILD_NLX_DIR) $(BUILD_GCC_DIR)-pass-2 $(BUILD_HAL_DIR) $(BUILD_GDB_DIR)
+	-@$(RMDIR) $(TOOLCHAIN) $(COMP_LIB)/ 
+	@for DIR in $(BUILD_CORE_DIRS); do $(RMDIR) $$DIR; done
+	@for DIR in $(CORE); do rm -f $(SOURCE_DIR)/.$$DIR*ed; done
 	-@rm -f $(SOURCE_DIR)/.*ed
+	@$(MAKE) $(MAKE_OPT) clean-tools
+clean-tools:
+	$(info ##########################)
+	$(info #### clean-tools...)
+	$(info ##########################)
+	@for DIR in $(BUILD_TOOL_DIRS); do $(RMDIR) $$DIR; done
+	@for TOOL in $(TOOLS); do rm -f $(SOURCE_DIR)/.$$TOOL*ed; done
+	@$(MAKE) $(MAKE_OPT) -C $(LWIP_DIR) -f Makefile.open clean
 clean-sdk:
 	$(info ##########################)
 	$(info #### clean-sdk...)
 	$(info ##########################)
 	-@rm -rf $(TOP_SDK)
-	-@$(MAKE) $(MAKE_OPT) -C $(LWIP_DIR) -f Makefile.open clean
-
 purge: clean
 	$(info ##########################)
 	$(info #### purge...)
 	$(info ##########################)
-	-@rm -rf $(GMP_DIR) $(MPFR_DIR) $(MPC_DIR) $(CURSES_DIR) $(BIN_DIR) $(ISL_DIR) $(CLOOG_DIR)
-	-@rm -rf $(GCC_DIR) $(NLX_DIR) $(HAL_DIR) $(GDB_DIR)
+	@for DIR in $(CORE_DIR); do rm -rf $$DIR; done
+	@for DIR in $(TOOL_DIR); do rm -rf $$DIR; done
 #rm -@rf $(TAR_DIR)/*.{zip,bz2,xz,gz}
