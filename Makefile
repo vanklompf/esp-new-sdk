@@ -22,7 +22,7 @@ USE_STRIP = y
 USE_COMPRESS = n
 
 # The Curses library "cursor optimization"
-USE_CURSES = n
+USE_CURSES = y
 # Integer Set Library
 USE_ISL = y
 # XML-Parser
@@ -484,7 +484,7 @@ all:
 	@$(MAKE) $(MAKE_OPT) info-start
 	@$(MAKE) $(MAKE_OPT) info-build 2>>$(ERROR_LOG)
 	@$(MAKE) $(MAKE_OPT) build-bins 2>>$(ERROR_LOG)
-	@$(MAKE) build-comps 2>>$(ERROR_LOG)
+	@$(MAKE) $(MAKE_OPT) build-comps
 	@$(MAKE) $(MAKE_OPT) build-core 2>>$(ERROR_LOG)
 	@$(MAKE) $(MAKE_OPT) build-tools 2>>$(ERROR_LOG)
 	@$(MAKE) $(MAKE_OPT) strip 2>>$(ERROR_LOG)
@@ -509,7 +509,7 @@ install:
 
 # companian libraries
 build-bins: build-$(GMP) build-$(MPFR) build-$(MPC) build-$(BIN)
-build-comps: build-$(EXPAT) build-$(CURSES) build-$(CLOOG) build-$(ISL)
+build-comps: build-$(EXPAT) build-$(CURSES) build-$(ISL) build-$(CLOOG)
 # most core functions
 build-core:
 	@$(MAKE) $(MAKE_OPT) build-$(GCC)-1
