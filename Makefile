@@ -483,7 +483,9 @@ SDK_TAR_DIR = $(SDK_VER)/$(SDK_ZIP)
 all:
 	@$(MAKE) $(MAKE_OPT) info-start
 	@$(MAKE) $(MAKE_OPT) info-build 2>>$(ERROR_LOG)
-	@$(MAKE) $(MAKE_OPT) build 2>>$(ERROR_LOG)
+	@$(MAKE) $(MAKE_OPT) build-comps 2>>$(ERROR_LOG)
+	@$(MAKE) $(MAKE_OPT) build-core 2>>$(ERROR_LOG)
+	@$(MAKE) $(MAKE_OPT) build-tools 2>>$(ERROR_LOG)
 	@$(MAKE) $(MAKE_OPT) strip 2>>$(ERROR_LOG)
 	@$(MAKE) $(MAKE_OPT) compress 2>>$(ERROR_LOG)
 	@$(MAKE) $(MAKE_OPT) info
@@ -504,15 +506,16 @@ install:
 
 #**** allow some parallelization in build process
 
-#build: build-$(GMP) build-$(EXPAT) build-$(CURSES) build-$(MPFR) build-$(ISL) build-$(GDB) build-$(MPC) build-$(BIN) 
-build: build-$(GMP) build-$(MPFR) build-$(ISL) build-$(CLOOG) build-$(MPC) build-$(BIN)
-	@$(MAKE) $(MAKE_OPT) build-$(CLOOG)
+# companian libraries
+build-comps: build-$(GMP) build-$(MPFR) build-$(ISL) build-$(CLOOG) build-$(MPC) build-$(BIN)
+# most core functions
+build-core:
 	@$(MAKE) $(MAKE_OPT) build-$(GCC)-1
 	@$(MAKE) $(MAKE_OPT) build-$(NLX)
 	@$(MAKE) $(MAKE_OPT) build-$(GCC)-2
-	@$(MAKE) $(MAKE_OPT) build-$(HAL)
-	@$(MAKE) $(MAKE_OPT) build-sdk-libs
-	@$(MAKE) $(MAKE_OPT) build-$(LWIP) 
+# additional tools
+build-tools: build-$(HAL) build-sdk-libs build-$(LWIP) build-$(GDB)
+	@$(MAKE) $(MAKE_OPT) tools-info
 
 tools:
 	@$(MAKE) $(MAKE_OPT) info-tools
