@@ -509,7 +509,7 @@ install:
 
 # companian libraries
 build-bins: build-$(GMP) build-$(MPFR) build-$(MPC) build-$(BIN)
-build-comps: build-$(EXPAT) build-$(CURSES) build-$(ISL) build-$(CLOOG)
+build-comps: build-$(EXPAT) build-$(CURSES) build-$(CLOOG) build-$(ISL)
 # most core functions
 build-core:
 	@$(MAKE) $(MAKE_OPT) build-$(GCC)-1
