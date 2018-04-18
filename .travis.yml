@@ -27,14 +27,14 @@ jobs:
         - "cd $TRAVIS_BUILD_DIR"
         - "travis_wait 45 make -j3"
       after_script:
-        - "cat distrib/Linux64-error.log"
+        - "tail distrib/Linux64-error.log"
     - stage: macos
       os: osx
       script: 
         - "cd $TRAVIS_BUILD_DIR"
         - "travis_wait 45 make -j3"
       after_script:
-        - "cat distrib/MacOS64-error.log"
+        - "tail distrib/MacOS64-error.log"
       cache: false      
 
 before_deploy: 
