@@ -32,7 +32,7 @@ USE_CLOOG = y
 # build lwip-lib
 USE_LWIP = y
 # build debugger
-USE_GDB = y
+USE_GDB = n
 
 BUILDPATH = /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:
 
