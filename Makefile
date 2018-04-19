@@ -625,10 +625,10 @@ ifeq ($(USE_CURSES),y)
 	+$(MAKE) $(MAKE_OPT) $(SOURCE_DIR)/.$(CURSES).installed
 endif
 
-build-$(ISL): | $(TOOLCHAIN)
 ifeq ($(USE_ISL),y)
-	@$(MKDIR) $(COMP_LIB)/$(ISL)-$(ISL_VERSION)
-	+$(MAKE) $(MAKE_OPT) $(SOURCE_DIR)/.$(ISL).installed
+build-$(ISL): $(SOURCE_DIR)/.$(ISL).installed | $(TOOLCHAIN)
+else
+build-$(ISL):
 endif
 
 build-$(CLOOG): | $(TOOLCHAIN)
