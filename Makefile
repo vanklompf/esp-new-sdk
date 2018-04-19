@@ -510,12 +510,12 @@ install:
 #*******************************************
 
 #**** allow some parallelization in build process
-
 # companion libraries
 build-bins: build-$(GMP) build-$(MPFR) build-$(MPC) build-$(BIN) build-$(EXPAT) build-$(CURSES) build-$(CLOOG) build-$(ISL) build-$(GDB)
 
 # most core functions
 build-core:
+	@$(MAKE) $(MAKE_OPT) build-$(CLOOG)
 	@$(MAKE) $(MAKE_OPT) build-$(GCC)-1
 	@$(MAKE) $(MAKE_OPT) build-$(NLX)
 	@$(MAKE) $(MAKE_OPT) build-$(GCC)-2
