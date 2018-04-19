@@ -475,6 +475,11 @@ SDK_TAR_DIR = $(SDK_VER)/$(SDK_ZIP)
 .PHONY: build get-tars
 .PHONY: info-start info-build info-tools info inst-info info-distrib
 .PHONY: distrib install strip compress clean clean-build clean-sdk
+.PHONY: build-bins build-core build-tools
+.PHONY: build-$(GMP) build-$(MPFR) build-$(MPC) build-$(BIN)
+.PHONY: build-$(EXPAT) build-$(CURSES) build-$(ISL) build-$(CLOOG)
+.PHONY: build-$(HAL) build-sdk-libs build-$(LWIP) build-$(GDB)
+.PHONY: build-$(GCC)-1 build-$(NLX) build-$(GCC)-2
 
 #*******************************************
 #************* Build Toolchain *************
