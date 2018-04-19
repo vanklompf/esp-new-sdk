@@ -515,7 +515,6 @@ build-bins: build-$(GMP) build-$(MPFR) build-$(MPC) build-$(BIN) build-$(EXPAT) 
 
 # most core functions
 build-core:
-	@$(MAKE) $(MAKE_OPT) build-$(CLOOG)
 	@$(MAKE) $(MAKE_OPT) build-$(GCC)-1
 	@$(MAKE) $(MAKE_OPT) build-$(NLX)
 	@$(MAKE) $(MAKE_OPT) build-$(GCC)-2
