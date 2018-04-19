@@ -6,7 +6,7 @@
 # Credits to Paul Sokolovsky (@pfalcon) for esp-open-sdk
 # Credits to Ivan Grokhotkov (@igrr) for compiler options (NLX_OPT) and library modifications
 #
-# Last edit: 18.04.2018
+# Last edit: 19.04.2018
 
 #*******************************************
 #************** configuration **************
@@ -22,15 +22,15 @@ USE_STRIP = y
 USE_COMPRESS = n
 
 # The Curses library "cursor optimization"
-USE_CURSES = n
+USE_CURSES = y
 # Integer Set Library
-USE_ISL = y
+USE_ISL = n
 # XML-Parser
-USE_EXPAT = y
+USE_EXPAT = n
 # The Chunky Loop Generator
-USE_CLOOG = y
+USE_CLOOG = n
 # build lwip-lib
-USE_LWIP = y
+USE_LWIP = n
 # build debugger
 USE_GDB = n
 
@@ -372,6 +372,12 @@ else
 	AR_XTRACT:= x
 	AR_INSERT:= r
 	OCP_REDEF:= --redefine-sym
+endif
+
+# Under MacOS the syntax for mode description is different
+FIND_MODE := /0111
+ifeq ($(PLATFORM),Darwin)
+	FIND_MODE := 0111
 endif
 
 WITH_GMP  = --with-$(GMP)=$(COMP_LIB)/$(GMP)-$(GMP_VERSION)
@@ -1098,7 +1104,7 @@ $(SOURCE_DIR)/.$(SDK).stripped:
 	$(info #### stripping...)
 	$(info ##########################)
 	@du -sh $(TOOLCHAIN)/bin
-	-@find $(TOOLCHAIN) -maxdepth 2 -type f -perm /0111 -exec strip -s "{}" +
+	-@find $(TOOLCHAIN) -maxdepth 2 -type f -perm $(FIND_MODE) -exec strip -s "{}" +
 	@du -sh $(TOOLCHAIN)/bin
 	@$(RM) $(SOURCE_DIR)/.$(SDK).distributed
 	@touch $@
@@ -1110,7 +1116,7 @@ $(SOURCE_DIR)/.$(SDK).compressed:
 	$(info #### compressing...)
 	$(info ##########################)
 	@du -sh $(TOOLCHAIN)/bin
-	-@find $(TOOLCHAIN) -maxdepth 2 -type f -perm /0111 -exec upx -q -1 "{}" +
+	-@find $(TOOLCHAIN) -maxdepth 2 -type f -perm $(FIND_MODE) -exec upx -q -1 "{}" +
 	@$(OUTPUT_DATE)
 	@du -sh $(TOOLCHAIN)/bin
 	@$(RM) $(SOURCE_DIR)/.$(SDK).distributed
