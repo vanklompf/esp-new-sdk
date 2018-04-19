@@ -517,7 +517,7 @@ install:
 
 #**** allow some parallelization in build process
 # companion libraries
-build-bins: build-$(GMP) build-$(MPFR) build-$(MPC) build-$(BIN) build-$(EXPAT) build-$(CURSES) build-$(CLOOG) build-$(ISL) build-$(GDB)
+build-bins: build-$(GMP) build-$(MPFR) build-$(MPC) build-$(BIN) build-$(EXPAT) build-$(CURSES) build-$(CLOOG) build-$(ISL)
 
 # most core functions
 build-core:
@@ -525,7 +525,7 @@ build-core:
 	@$(MAKE) $(MAKE_OPT) build-$(NLX)
 	@$(MAKE) $(MAKE_OPT) build-$(GCC)-2
 # additional tools
-build-tools: build-$(HAL) build-sdk-libs build-$(LWIP)
+build-tools: build-$(GDB) build-$(HAL) build-sdk-libs build-$(LWIP)
 
 #**** download all tar-files into tarballs
 
