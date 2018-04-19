@@ -22,7 +22,7 @@ USE_STRIP = y
 USE_COMPRESS = n
 
 # The Curses library "cursor optimization"
-USE_CURSES = y
+USE_CURSES = n
 # Integer Set Library
 USE_ISL = n
 # XML-Parser
@@ -30,9 +30,9 @@ USE_EXPAT = n
 # The Chunky Loop Generator
 USE_CLOOG = n
 # build lwip-lib
-USE_LWIP = n
+USE_LWIP = y
 # build debugger
-USE_GDB = n
+USE_GDB = y
 
 BUILDPATH = /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:
 
@@ -162,7 +162,7 @@ BIN_VERSION  = 2.30
 HAL_VERSION  = lx106-hal
 
 CURSES_VERSION  = 6.0
-#CURSES_VERSION  = 6.1
+CURSES_VERSION  = 6.1
 
 EXPAT_VERSION = 2.1.0
 EXPAT_VERSION = 2.2.5
@@ -526,12 +526,6 @@ build-core:
 	@$(MAKE) $(MAKE_OPT) build-$(GCC)-2
 # additional tools
 build-tools: build-$(HAL) build-sdk-libs build-$(LWIP)
-	@$(MAKE) $(MAKE_OPT) tools-info
-
-#tools:
-#	@$(MAKE) $(MAKE_OPT) info-tools
-#	@for TOOL in $(TOOLS); do $(MAKE) build-$$TOOL $(QUIET) || exit 1 ; done
-#	@$(MAKE) $(MAKE_OPT) tools-info
 
 #**** download all tar-files into tarballs
 
