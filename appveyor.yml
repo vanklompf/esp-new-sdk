@@ -5,7 +5,7 @@ environment:
   - MSYSTEM: MINGW64
     PATH: C:\msys64\usr\bin\;C:\msys64\bin
   - MSYSTEM: CYGWIN64
-    PATH: C:\Cygwin64\usr\bin\;C:\Cygwin64\bin
+    PATH: /usr/bin:/usr/local/bin
 #run bash without changing current directory
   CHERE_INVOKING: 1
   
