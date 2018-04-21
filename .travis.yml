@@ -1,9 +1,9 @@
 sudo: false
 language: cpp
 
-jobs: 
-  include: 
-    - stage: linux
+jobs:
+  include:
+    - os: linux
       dist: trusty
       os: linux
       addons: 
@@ -28,8 +28,8 @@ jobs:
         - "travis_wait 45 make -j3"
       after_script:
         - "tail distrib/Linux64-error.log"
-    - stage: macos
-      os: osx
+    - os: osx
+      script:
       script: 
         - "cd $TRAVIS_BUILD_DIR"
         - "travis_wait 45 make -j3"
