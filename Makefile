@@ -607,14 +607,14 @@ $(TOOLCHAIN): | $(DIST_DIR) $(SOURCE_DIR) $(TAR_DIR) $(COMP_LIB)
 #************* single targets **************
 #*******************************************
 #
-build-$(GMP):    $(SOURCE_DIR)/.$(GMP).installed | $(TOOLCHAIN) 
-build-$(MPFR):   $(SOURCE_DIR)/.$(MPFR).installed | $(TOOLCHAIN) 
-build-$(MPC):    $(SOURCE_DIR)/.$(MPC).installed | $(TOOLCHAIN) 
-build-$(BIN):    $(SOURCE_DIR)/.$(BIN).installed | $(TOOLCHAIN) 
-build-$(GCC)-1:  $(SOURCE_DIR)/.$(GCC)-pass-1.installed | $(TOOLCHAIN) 
-build-$(NLX):    $(SOURCE_DIR)/.$(NLX).installed | $(TOOLCHAIN) 
-build-$(GCC)-2:  $(SOURCE_DIR)/.$(GCC)-pass-2.installed | $(TOOLCHAIN) 
-build-$(HAL):    $(SOURCE_DIR)/.$(HAL).installed | $(TOOLCHAIN) 
+build-$(GMP):    $(SOURCE_DIR)/.$(GMP).installed | $(TOOLCHAIN)
+build-$(MPFR):   $(SOURCE_DIR)/.$(MPFR).installed | $(TOOLCHAIN) $(SOURCE_DIR)/.$(GMP).installed
+build-$(MPC):    $(SOURCE_DIR)/.$(MPC).installed | $(TOOLCHAIN) $(SOURCE_DIR)/.$(MPFR).installed
+build-$(BIN):    $(SOURCE_DIR)/.$(BIN).installed | $(TOOLCHAIN) $(SOURCE_DIR)/.$(GMP).installed
+build-$(GCC)-1:  $(SOURCE_DIR)/.$(GCC)-pass-1.installed | $(TOOLCHAIN) $(SOURCE_DIR)/.$(MPC).installed $(SOURCE_DIR)/.$(BIN).installed
+build-$(NLX):    $(SOURCE_DIR)/.$(NLX).installed | $(TOOLCHAIN) $(SOURCE_DIR)/.$(GCC)-pass-1.installed
+build-$(GCC)-2:  $(SOURCE_DIR)/.$(GCC)-pass-2.installed | $(TOOLCHAIN) $(SOURCE_DIR)/.$(NLX).installed
+build-$(HAL):    $(SOURCE_DIR)/.$(HAL).installed | $(TOOLCHAIN) $(SOURCE_DIR)/.$(GCC)-pass-2.installed
 build-sdk-libs:  $(SOURCE_DIR)/.$(SDK).installed $(SOURCE_DIR)/.sdk-libs.installed | $(TOOLCHAIN)
 
 ifeq ($(USE_CURSES),y)
@@ -624,13 +624,13 @@ build-$(CURSES):
 endif
 
 ifeq ($(USE_ISL),y)
-build-$(ISL): $(SOURCE_DIR)/.$(ISL).installed | $(TOOLCHAIN)
+build-$(ISL): $(SOURCE_DIR)/.$(ISL).installed | $(TOOLCHAIN) $(SOURCE_DIR)/.$(GMP).installed
 else
 build-$(ISL):
 endif
 
 ifeq ($(USE_CLOOG),y)
-build-$(CLOOG): $(SOURCE_DIR)/.$(CLOOG).installed | $(TOOLCHAIN)
+build-$(CLOOG): $(SOURCE_DIR)/.$(CLOOG).installed | $(TOOLCHAIN) $(SOURCE_DIR)/.$(ISL).installed
 else
 build-$(CLOOG):
 endif
@@ -648,7 +648,7 @@ build-$(GDB):
 endif
 
 ifeq ($(USE_LWIP),y)
-build-$(LWIP): $(SOURCE_DIR)/.$(LWIP).installed  | $(TOOLCHAIN)
+build-$(LWIP): $(SOURCE_DIR)/.$(LWIP).installed | $(TOOLCHAIN) $(SOURCE_DIR)/.$(GCC)-pass-2.installed $(SOURCE_DIR)/.$(SDK).installed
 else
 build-$(LWIP):
 endif
