@@ -494,6 +494,7 @@ SDK_TAR_DIR = $(SDK_VER)/$(SDK_ZIP)
 all:
 	@$(MAKE) $(MAKE_OPT) info-start
 	@$(MAKE) $(MAKE_OPT) info-build 2>>$(ERROR_LOG)
+	@$(MAKE) $(MAKE_OPT) pre-conf-$(GMP)
 	@$(MAKE) $(MAKE_OPT) build-bins 2>>$(ERROR_LOG)
 	@$(MAKE) $(MAKE_OPT) build-core 2>>$(ERROR_LOG)
 	@$(MAKE) $(MAKE_OPT) build-tools 2>>$(ERROR_LOG)
@@ -515,17 +516,23 @@ install:
 #************* build targets ***************
 #*******************************************
 
-#**** allow some parallelization in build process
+# it seems GMP can not ultimately be configured in parallel
+pre-conf-$(GMP): | $(TOOLCHAIN)
+	$(MAKE) $(MAKE_OPT) $(SOURCE_DIR)/.$(GMP).configured
+
+#**** allow most parallelization in build process
+build: build-$(GMP) build-$(MPFR) build-$(MPC) build-$(BIN) build-$(EXPAT) build-$(CURSES) build-$(CLOOG) build-$(ISL) \
+       build-$(GCC)-1 build-$(NLX) build-$(GCC)-2 build-$(HAL) \
+       build-$(GDB) build-$(LWIP) build-sdk-libs
+
 # companion libraries
 build-bins: build-$(GMP) build-$(MPFR) build-$(MPC) build-$(BIN) build-$(EXPAT) build-$(CURSES) build-$(CLOOG) build-$(ISL)
 
 # most core functions
-build-core:
-	@$(MAKE) $(MAKE_OPT) build-$(GCC)-1
-	@$(MAKE) $(MAKE_OPT) build-$(NLX)
-	@$(MAKE) $(MAKE_OPT) build-$(GCC)-2
+build-core: build-$(GCC)-1 build-$(NLX) build-$(GCC)-2 build-$(HAL)
+
 # additional tools
-build-tools: build-$(GDB) build-$(HAL) build-sdk-libs build-$(LWIP)
+build-tools: build-$(GDB) build-$(LWIP) build-sdk-libs
 
 #**** download all tar-files into tarballs
 
