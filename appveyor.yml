@@ -16,7 +16,7 @@ install:
   
 build_script:
   - "echo Build using $(expr $(nproc) + 1) jobs"
-  - "make -j$(expr $(nproc) + 1)"
+  - C:\msys64\usr\bin\bash --login -c "make -j$(expr $(nproc) + 1)"
   
 on_failure:
   - "tail distrib/*64-error.log"
