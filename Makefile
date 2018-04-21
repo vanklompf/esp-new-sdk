@@ -523,13 +523,13 @@ build: build-$(GMP) build-$(MPFR) build-$(MPC) build-$(BIN) build-$(EXPAT) build
        build-$(GDB) build-$(LWIP) build-sdk-libs
 
 # companion libraries
-build-bins: build-$(GMP) build-$(MPFR) build-$(MPC) build-$(BIN) build-$(EXPAT) build-$(CURSES) build-$(CLOOG) build-$(ISL) build-$(GDB)
+build-bins: build-$(GMP) build-$(MPFR) build-$(MPC) build-$(BIN) build-$(EXPAT) build-$(CURSES) build-$(CLOOG) build-$(ISL)
 
 # most core functions
 build-core: build-$(GCC)-1 build-$(NLX) build-$(GCC)-2 build-$(HAL)
 
 # additional tools
-build-tools: build-$(LWIP) build-sdk-libs
+build-tools: build-$(LWIP) build-sdk-libs  build-$(GDB)
 
 #**** download all tar-files into tarballs
 
