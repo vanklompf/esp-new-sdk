@@ -887,10 +887,9 @@ define Extract_Modul
 	@if ! test -f $(SOURCE_DIR)/.$1.extracted; then echo "##########################"; fi
 	@if ! test -f $(SOURCE_DIR)/.$1.extracted; then echo "#### Extract $1..." | tee -a $(ERROR_LOG); fi
 	@#### Extract: if not exist $(SOURCE_DIR)/.$1.extracted then $(RMDIR) $2 && $(MKDIR) $2 && untar $3 to $2
-	@if ! test -f $(SOURCE_DIR)/.$1.extracted; then $(RMDIR) $2 && $(MKDIR) $2 && $(UNTAR) $3 -C $2; fi
-	@#### Extract: if $4 exists then mv -f $4/* to $2 && $(RMDIR) $4
-	@if test -d $4 && $(MKDIR) $2; then $(MOVE) $4/* $2 && $(RMDIR) $4; fi
-	@touch $(SOURCE_DIR)/.$1.extracted
+	@#if ! test -f $(SOURCE_DIR)/.$1.extracted; then $(RMDIR) $2 && $(MKDIR) $2 && $(UNTAR) $3 -C $2; fi
+	if ! test -f $(SOURCE_DIR)/.$1.extracted; then $(UNTAR) $3 -C $(SOURCE_DIR); fi
+	-@touch $4
 endef
 
 define Config_Modul
@@ -918,15 +917,15 @@ define Install_Modul
 	@echo "##########################"
 	@#### "Install: Path=$(SAFEPATH); $(MAKE) $(MAKE_OPT) $3=$(INST_OPT) -C $2"
 	+@PATH=$(SAFEPATH); $(MAKE) $(MAKE_OPT) $3 -C $2 $(QUIET)
-	@touch $(SOURCE_DIR)/.$1.installed
 	$(OUTPUT_DATE)
+	@touch $(SOURCE_DIR)/.$1.installed
 endef
 
 #************** CURSES
 $(SOURCE_DIR)/.$(CURSES).loaded:
 	$(call Load_Modul,$(CURSES),$(CURSES_URL),$(CURSES_TAR))
 $(SOURCE_DIR)/.$(CURSES).extracted: $(SOURCE_DIR)/.$(CURSES).loaded
-	$(call Extract_Modul,$(CURSES),$(CURSES_DIR),$(CURSES_TAR),$(CURSES_DIR)/$(CURSES_TAR_DIR))
+	$(call Extract_Modul,$(CURSES),$(CURSES_DIR),$(CURSES_TAR),$@)
 $(SOURCE_DIR)/.$(CURSES).configured: $(SOURCE_DIR)/.$(CURSES).extracted
 	$(call Config_Modul,$(CURSES),$(BUILD_CURSES_DIR),--prefix=$(COMP_LIB)/$(CURSES)-$(CURSES_VERSION),$(CURSES_OPT))
 $(SOURCE_DIR)/.$(CURSES).builded: $(SOURCE_DIR)/.$(CURSES).configured
@@ -938,7 +937,7 @@ $(SOURCE_DIR)/.$(CURSES).installed: $(SOURCE_DIR)/.$(CURSES).builded
 $(SOURCE_DIR)/.$(GMP).loaded:
 	$(call Load_Modul,$(GMP),$(GMP_URL),$(GMP_TAR))
 $(SOURCE_DIR)/.$(GMP).extracted: $(SOURCE_DIR)/.$(GMP).loaded
-	$(call Extract_Modul,$(GMP),$(GMP_DIR),$(GMP_TAR),$(GMP_DIR)/$(GMP_TAR_DIR))
+	$(call Extract_Modul,$(GMP),$(GMP_DIR),$(GMP_TAR),$@)
 $(SOURCE_DIR)/.$(GMP).configured: $(SOURCE_DIR)/.$(GMP).extracted
 	$(call Config_Modul,$(GMP),$(BUILD_GMP_DIR),--prefix=$(COMP_LIB)/$(GMP)-$(GMP_VERSION),$(GMP_OPT))
 $(SOURCE_DIR)/.$(GMP).builded: $(SOURCE_DIR)/.$(GMP).configured
@@ -950,8 +949,8 @@ $(SOURCE_DIR)/.$(GMP).installed: $(SOURCE_DIR)/.$(GMP).builded
 $(SOURCE_DIR)/.$(MPFR).loaded:
 	$(call Load_Modul,$(MPFR),$(MPFR_URL),$(MPFR_TAR))
 $(SOURCE_DIR)/.$(MPFR).extracted: $(SOURCE_DIR)/.$(MPFR).loaded
-	$(call Extract_Modul,$(MPFR),$(MPFR_DIR),$(MPFR_TAR),$(MPFR_DIR)/$(MPFR_TAR_DIR))
-$(SOURCE_DIR)/.$(MPFR).configured: $(SOURCE_DIR)/.$(MPFR).extracted $(SOURCE_DIR)/.$(GMP).installed
+	$(call Extract_Modul,$(MPFR),$(MPFR_DIR),$(MPFR_TAR),$@)
+$(SOURCE_DIR)/.$(MPFR).configured: $(SOURCE_DIR)/.$(MPFR).extracted | $(SOURCE_DIR)/.$(GMP).installed
 	$(call Config_Modul,$(MPFR),$(BUILD_MPFR_DIR),--prefix=$(COMP_LIB)/$(MPFR)-$(MPFR_VERSION) -with-$(GMP)=$(COMP_LIB)/$(GMP)-$(GMP_VERSION),$(MPFR_OPT))
 $(SOURCE_DIR)/.$(MPFR).builded: $(SOURCE_DIR)/.$(MPFR).configured
 	$(call Build_Modul,$(MPFR),$(BUILD_MPFR_DIR))
@@ -962,8 +961,8 @@ $(SOURCE_DIR)/.$(MPFR).installed: $(SOURCE_DIR)/.$(MPFR).builded
 $(SOURCE_DIR)/.$(MPC).loaded:
 	$(call Load_Modul,$(MPC),$(MPC_URL),$(MPC_TAR))
 $(SOURCE_DIR)/.$(MPC).extracted: $(SOURCE_DIR)/.$(MPC).loaded
-	$(call Extract_Modul,$(MPC),$(MPC_DIR),$(MPC_TAR),$(MPC_DIR)/$(MPC_TAR_DIR))
-$(SOURCE_DIR)/.$(MPC).configured: $(SOURCE_DIR)/.$(MPC).extracted $(SOURCE_DIR)/.$(MPFR).installed
+	$(call Extract_Modul,$(MPC),$(MPC_DIR),$(MPC_TAR),$@)
+$(SOURCE_DIR)/.$(MPC).configured: $(SOURCE_DIR)/.$(MPC).extracted | $(SOURCE_DIR)/.$(MPFR).installed
 	$(call Config_Modul,$(MPC),$(BUILD_MPC_DIR),--prefix=$(COMP_LIB)/$(MPC)-$(MPC_VERSION) -with-$(MPFR)=$(COMP_LIB)/$(MPFR)-$(MPFR_VERSION) -with-$(GMP)=$(COMP_LIB)/$(GMP)-$(GMP_VERSION),$(MPC_OPT))
 $(SOURCE_DIR)/.$(MPC).builded: $(SOURCE_DIR)/.$(MPC).configured
 	$(call Build_Modul,$(MPC),$(BUILD_MPC_DIR))
@@ -974,7 +973,7 @@ $(SOURCE_DIR)/.$(MPC).installed: $(SOURCE_DIR)/.$(MPC).builded
 $(SOURCE_DIR)/.$(EXPAT).loaded:
 	$(call Load_Modul,$(EXPAT),$(EXPAT_URL),$(EXPAT_TAR))
 $(SOURCE_DIR)/.$(EXPAT).extracted: $(SOURCE_DIR)/.$(EXPAT).loaded
-	$(call Extract_Modul,$(EXPAT),$(EXPAT_DIR),$(EXPAT_TAR),$(EXPAT_DIR)/$(EXPAT_TAR_DIR))
+	$(call Extract_Modul,$(EXPAT),$(EXPAT_DIR),$(EXPAT_TAR),$@)
 $(SOURCE_DIR)/.$(EXPAT).configured: $(SOURCE_DIR)/.$(EXPAT).extracted
 	$(call Config_Modul,$(EXPAT),$(BUILD_EXPAT_DIR),--prefix=$(COMP_LIB)/$(EXPAT)-$(EXPAT_VERSION),$(EXPAT_OPT))
 $(SOURCE_DIR)/.$(EXPAT).builded: $(SOURCE_DIR)/.$(EXPAT).configured
@@ -986,8 +985,8 @@ $(SOURCE_DIR)/.$(EXPAT).installed: $(SOURCE_DIR)/.$(EXPAT).builded
 $(SOURCE_DIR)/.$(BIN).loaded:
 	$(call Load_Modul,$(BIN),$(BIN_URL),$(BIN_TAR))
 $(SOURCE_DIR)/.$(BIN).extracted: $(SOURCE_DIR)/.$(BIN).loaded
-	$(call Extract_Modul,$(BIN),$(BIN_DIR),$(BIN_TAR),$(BIN_DIR)/$(BIN_TAR_DIR))
-$(SOURCE_DIR)/.$(BIN).configured: $(SOURCE_DIR)/.$(BIN).extracted $(SOURCE_DIR)/.$(GMP).installed
+	$(call Extract_Modul,$(BIN),$(BIN_DIR),$(BIN_TAR),$@)
+$(SOURCE_DIR)/.$(BIN).configured: $(SOURCE_DIR)/.$(BIN).extracted | $(SOURCE_DIR)/.$(GMP).installed
 	$(call Config_Modul,$(BIN),$(BUILD_BIN_DIR),--prefix=$(TOOLCHAIN) -target=$(TARGET),$(BIN_OPT))
 $(SOURCE_DIR)/.$(BIN).builded: $(SOURCE_DIR)/.$(BIN).configured
 	$(call Build_Modul,$(BIN),$(BUILD_BIN_DIR))
@@ -998,8 +997,8 @@ $(SOURCE_DIR)/.$(BIN).installed: $(SOURCE_DIR)/.$(BIN).builded
 $(SOURCE_DIR)/.$(ISL).loaded:
 	$(call Load_Modul,$(ISL),$(ISL_URL),$(ISL_TAR))
 $(SOURCE_DIR)/.$(ISL).extracted: $(SOURCE_DIR)/.$(ISL).loaded
-	$(call Extract_Modul,$(ISL),$(ISL_DIR),$(ISL_TAR),$(ISL_DIR)/$(ISL_TAR_DIR))
-$(SOURCE_DIR)/.$(ISL).configured: $(SOURCE_DIR)/.$(ISL).extracted $(SOURCE_DIR)/.$(GMP).installed
+	$(call Extract_Modul,$(ISL),$(ISL_DIR),$(ISL_TAR),$@)
+$(SOURCE_DIR)/.$(ISL).configured: $(SOURCE_DIR)/.$(ISL).extracted | $(SOURCE_DIR)/.$(GMP).installed
 	$(call Config_Modul,$(ISL),$(BUILD_ISL_DIR),--prefix=$(COMP_LIB)/$(ISL)-$(ISL_VERSION),$(ISL_OPT))
 $(SOURCE_DIR)/.$(ISL).builded: $(SOURCE_DIR)/.$(ISL).configured
 	$(call Build_Modul,$(ISL),$(BUILD_ISL_DIR))
@@ -1010,8 +1009,8 @@ $(SOURCE_DIR)/.$(ISL).installed: $(SOURCE_DIR)/.$(ISL).builded
 $(SOURCE_DIR)/.$(CLOOG).loaded:
 	$(call Load_Modul,$(CLOOG),$(CLOOG_URL),$(CLOOG_TAR))
 $(SOURCE_DIR)/.$(CLOOG).extracted: $(SOURCE_DIR)/.$(CLOOG).loaded
-	$(call Extract_Modul,$(CLOOG),$(CLOOG_DIR),$(CLOOG_TAR),$(CLOOG_DIR)/$(CLOOG_TAR_DIR))
-$(SOURCE_DIR)/.$(CLOOG).configured: $(SOURCE_DIR)/.$(CLOOG).extracted $(SOURCE_DIR)/.$(ISL).installed
+	$(call Extract_Modul,$(CLOOG),$(CLOOG_DIR),$(CLOOG_TAR),$@)
+$(SOURCE_DIR)/.$(CLOOG).configured: $(SOURCE_DIR)/.$(CLOOG).extracted | $(SOURCE_DIR)/.$(ISL).installed
 	$(call Config_Modul,$(CLOOG),$(BUILD_CLOOG_DIR),--prefix=$(COMP_LIB)/$(CLOOG)-$(CLOOG_VERSION),$(CLOOG_OPT))
 $(SOURCE_DIR)/.$(CLOOG).builded: $(SOURCE_DIR)/.$(CLOOG).configured
 	$(call Build_Modul,$(CLOOG),$(BUILD_CLOOG_DIR))
@@ -1022,9 +1021,9 @@ $(SOURCE_DIR)/.$(CLOOG).installed: $(SOURCE_DIR)/.$(CLOOG).builded
 $(SOURCE_DIR)/.$(GCC).loaded:
 	$(call Load_Modul,$(GCC),$(GCC_URL),$(GCC_TAR))
 $(SOURCE_DIR)/.$(GCC).extracted: $(SOURCE_DIR)/.$(GCC).loaded
-	$(call Extract_Modul,$(GCC),$(GCC_DIR),$(GCC_TAR),$(GCC_DIR)/$(GCC_TAR_DIR))
+	$(call Extract_Modul,$(GCC),$(GCC_DIR),$(GCC_TAR),$@)
 #************** GCC Pass 1
-$(SOURCE_DIR)/.$(GCC)-pass-1.configured: $(SOURCE_DIR)/.$(GCC).extracted $(SOURCE_DIR)/.$(MPC).installed $(SOURCE_DIR)/.$(BIN).installed
+$(SOURCE_DIR)/.$(GCC)-pass-1.configured: $(SOURCE_DIR)/.$(GCC).extracted | $(SOURCE_DIR)/.$(MPC).installed $(SOURCE_DIR)/.$(BIN).installed
 	$(call Config_Modul,$(GCC)-pass-1,$(BUILD_GCC_DIR)-pass-1,--prefix=$(TOOLCHAIN) -target=$(TARGET),$(GC1_OPT))
 $(SOURCE_DIR)/.$(GCC)-pass-1.builded: $(SOURCE_DIR)/.$(GCC)-pass-1.configured
 	$(call Build_Modul,$(GCC)-pass-1,$(BUILD_GCC_DIR)-pass-1,,all-gcc)
@@ -1036,7 +1035,7 @@ $(TOOLCHAIN)/bin/$(XGCC): $(SOURCE_DIR)/.$(BIN).installed
 	@cp -p -f $(TOOLCHAIN)/bin/$(XGCC) $(TOOLCHAIN)/bin/$(XCC)
 
 #************** GCC Pass 2
-$(SOURCE_DIR)/.$(GCC)-pass-2.configured: | $(SOURCE_DIR)/.$(GCC)-pass-1.installed $(SOURCE_DIR)/.$(NLX).installed
+$(SOURCE_DIR)/.$(GCC)-pass-2.configured: $(SOURCE_DIR)/.$(GCC)-pass-1.installed | $(SOURCE_DIR)/.$(NLX).installed
 	$(call Config_Modul,$(GCC)-pass-2,$(BUILD_GCC_DIR)-pass-2,--prefix=$(TOOLCHAIN) -target=$(TARGET),$(GC2_OPT))
 $(SOURCE_DIR)/.$(GCC)-pass-2.builded: $(SOURCE_DIR)/.$(GCC)-pass-2.configured
 	$(call Build_Modul,$(GCC)-pass-2,$(BUILD_GCC_DIR)-pass-2)
@@ -1047,8 +1046,12 @@ $(SOURCE_DIR)/.$(GCC)-pass-2.installed: $(SOURCE_DIR)/.$(GCC)-pass-2.builded
 $(SOURCE_DIR)/.$(NLX).loaded:
 	$(call Load_Modul,$(NLX),$(NLX_URL),$(NLX_TAR))
 $(SOURCE_DIR)/.$(NLX).extracted: $(SOURCE_DIR)/.$(NLX).loaded
-	$(call Extract_Modul,$(NLX),$(NLX_DIR),$(NLX_TAR),$(NLX_DIR)/$(NLX_TAR_DIR))
-$(SOURCE_DIR)/.$(NLX).configured: $(SOURCE_DIR)/.$(NLX).extracted $(SOURCE_DIR)/.$(GCC)-pass-1.installed
+	$(call Extract_Modul,$(NLX),$(NLX_DIR),$(NLX_TAR),)
+	$(MKDIR) $(NLX_DIR)
+	$(COPY) $(SOURCE_DIR)/$(NLX_TAR_DIR)/* $(NLX_DIR)
+	$(RMDIR) $(SOURCE_DIR)/$(NLX_TAR_DIR)
+	@touch $@
+$(SOURCE_DIR)/.$(NLX).configured: $(SOURCE_DIR)/.$(NLX).extracted | $(SOURCE_DIR)/.$(GCC)-pass-1.installed
 	$(call Config_Modul,$(NLX),$(BUILD_NLX_DIR),$(NLX_OPT1),--prefix=$(TOOLCHAIN) -target=$(TARGET),$(NLX_OPT))
 $(SOURCE_DIR)/.$(NLX).builded: $(SOURCE_DIR)/.$(NLX).configured
 	$(call Build_Modul,$(NLX),$(BUILD_NLX_DIR),$(NLX_OPT1),all)
@@ -1060,9 +1063,13 @@ $(SOURCE_DIR)/.$(NLX).installed: $(SOURCE_DIR)/.$(NLX).builded
 $(SOURCE_DIR)/.$(HAL).loaded:
 	$(call Load_Modul,$(HAL),$(HAL_URL),$(HAL_TAR))
 $(SOURCE_DIR)/.$(HAL).extracted: $(SOURCE_DIR)/.$(HAL).loaded
-	$(call Extract_Modul,$(HAL),$(HAL_DIR),$(HAL_TAR),$(HAL_DIR)/$(HAL_TAR_DIR))
+	$(call Extract_Modul,$(HAL),$(HAL_DIR),$(HAL_TAR),)
+	$(MKDIR) $(HAL_DIR)
+	$(COPY) $(SOURCE_DIR)/$(HAL_TAR_DIR)/* $(HAL_DIR)
+	$(RMDIR) $(SOURCE_DIR)/$(HAL_TAR_DIR)
 	@cd $(HAL_DIR); autoreconf -i $(QUIET)
-$(SOURCE_DIR)/.$(HAL).configured: $(SOURCE_DIR)/.$(HAL).extracted $(SOURCE_DIR)/.$(GCC)-pass-2.installed
+	@touch $@
+$(SOURCE_DIR)/.$(HAL).configured: $(SOURCE_DIR)/.$(HAL).extracted | $(SOURCE_DIR)/.$(GCC)-pass-2.installed
 	$(call Config_Modul,$(HAL),$(BUILD_HAL_DIR),--host=$(TARGET) -prefix=$(TOOLCHAIN)/$(TARGET),$(HAL_OPT))
 $(SOURCE_DIR)/.$(HAL).builded: $(SOURCE_DIR)/.$(HAL).configured
 	$(call Build_Modul,$(HAL),$(BUILD_HAL_DIR))
@@ -1073,7 +1080,7 @@ $(SOURCE_DIR)/.$(HAL).installed: $(SOURCE_DIR)/.$(HAL).builded
 $(SOURCE_DIR)/.$(GDB).loaded:
 	$(call Load_Modul,$(GDB),$(GDB_URL),$(GDB_TAR))
 $(SOURCE_DIR)/.$(GDB).extracted: $(SOURCE_DIR)/.$(GDB).loaded
-	$(call Extract_Modul,$(GDB),$(GDB_DIR),$(GDB_TAR),$(GDB_DIR)/$(GDB_TAR_DIR))
+	$(call Extract_Modul,$(GDB),$(GDB_DIR),$(GDB_TAR),$@)
 $(SOURCE_DIR)/.$(GDB).configured: $(SOURCE_DIR)/.$(GDB).extracted
 	$(call Config_Modul,$(GDB),$(BUILD_GDB_DIR),--prefix=$(COMP_LIB)/$(GDB)-$(GDB_VERSION),$(GDB_OPT))
 $(SOURCE_DIR)/.$(GDB).builded: $(SOURCE_DIR)/.$(GDB).configured
@@ -1085,14 +1092,17 @@ $(SOURCE_DIR)/.$(GDB).installed: $(SOURCE_DIR)/.$(GDB).builded
 $(SOURCE_DIR)/.$(LWIP).loaded:
 	$(call Load_Modul,$(LWIP),$(LWIP_URL),$(LWIP_TAR))
 $(SOURCE_DIR)/.$(LWIP).extracted: $(SOURCE_DIR)/.$(LWIP).loaded
-	$(call Extract_Modul,$(LWIP),$(LWIP_DIR),$(LWIP_TAR),$(LWIP_DIR)/$(LWIP_TAR_DIR))
-$(SOURCE_DIR)/.$(LWIP).configured: $(SOURCE_DIR)/.$(LWIP).extracted $(SOURCE_DIR)/.$(GCC)-pass-2.installed $(SOURCE_DIR)/.$(SDK).installed
-####	$(#### Config_Modul,$(LWIP),$(BUILD_LWIP_DIR))
+	$(call Extract_Modul,$(LWIP),$(LWIP_DIR),$(LWIP_TAR),)
+	$(MKDIR) $(LWIP_DIR)
+	$(COPY) $(SOURCE_DIR)/$(LWIP_TAR_DIR)/* $(LWIP_DIR)
+	$(RMDIR) $(SOURCE_DIR)/$(LWIP_TAR_DIR)
+	touch $@
+$(SOURCE_DIR)/.$(LWIP).configured: $(SOURCE_DIR)/.$(LWIP).extracted | $(SOURCE_DIR)/.$(GCC)-pass-2.installed $(SOURCE_DIR)/.$(SDK).installed
 	+@if ! test -f $(SOURCE_DIR)/.$(LWIP).patched; then $(MAKE) $(LWIP)_patch && touch $(SOURCE_DIR)/.$(LWIP).patched; fi
+	@touch $@
 $(SOURCE_DIR)/.$(LWIP).builded: $(SOURCE_DIR)/.$(LWIP).configured
 	$(call Build_Modul,$(LWIP),$(LWIP_DIR) -f Makefile.open CC=$(TOOLCHAIN)/bin/$(XGCC) AR=$(TOOLCHAIN)/bin/$(XAR) PREFIX=$(TOOLCHAIN))
 $(SOURCE_DIR)/.$(LWIP).installed: $(SOURCE_DIR)/.$(LWIP).builded
-####	$(#### Install_Modul,$(LWIP),$(BUILD_LWIP_DIR),$(INST_OPT))
 	@cp -p -a $(LWIP_DIR)/include/arch $(LWIP_DIR)/include/lwip $(LWIP_DIR)/include/netif $(LWIP_DIR)/include/lwipopts.h $(TARGET_DIR)/include/
 	@touch $@
 
