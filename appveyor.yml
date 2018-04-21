@@ -4,8 +4,10 @@ environment:
   matrix:
     - TARGET: MINGW64
       #use MINGW64 environment to have native Windows binaries
+      - PATH: C:\MinGW\bin;
     - TARGET: Cygwin64
       #use Cygwin64 environment
+      - PATH: C:\Cygwin64\bin;
 #run bash without changing current directory
   CHERE_INVOKING: 1
   
