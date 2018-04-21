@@ -344,10 +344,6 @@ ifeq ($(DEBUG),y)
 	WGET     := wget -c --progress=dot:binary
 	PATCH    := patch -b -N
 	QUIET    :=
-	MKDIR    := mkdir -p
-	RM       := rm -f
-	RMDIR    := rm -R -f
-	MOVE     := mv -f
 	UNTAR    := bsdtar -vxf
 	CONF_OPT := configure
 	INST_OPT := install
@@ -360,10 +356,6 @@ else
 	WGET     := wget -cq
 	PATCH    := patch -s -b -N 
 	QUIET    := >>$(BUILD_LOG) 2>>$(ERROR_LOG)
-	MKDIR    := mkdir -p
-	RM       := rm -f
-	RMDIR    := rm -R -f
-	MOVE     := mv -f
 	UNTAR    := bsdtar -xf
 	CONF_OPT := configure -q
 	INST_OPT := install -s
@@ -373,6 +365,16 @@ else
 	AR_INSERT:= r
 	OCP_REDEF:= --redefine-sym
 endif
+
+MKDIR := mkdir -p
+RM    := rm -f
+RMDIR := rm -R -f
+MOVE  := mv -f
+COPY  := cp -R -f
+
+# for easy debugging
+#QUIET    :=
+#MAKE_OPT :=
 
 # Under MacOS the syntax for mode description is different
 FIND_MODE := /0111
