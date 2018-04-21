@@ -1267,11 +1267,11 @@ clean-sdk:
 	$(info ##########################)
 	$(info #### clean-sdk...)
 	$(info ##########################)
-	-@rm -rf $(TOP_SDK)
+	-@$(RMDIR) $(SDK_DIR)
 purge: clean
 	$(info ##########################)
 	$(info #### purge...)
 	$(info ##########################)
-	@for DIR in $(CORE_DIR); do rm -rf $$DIR; done
-	@for DIR in $(TOOL_DIR); do rm -rf $$DIR; done
+	@for DIR in $(CORE_DIRS); do rm -rf $$DIR; done
+	@for DIR in $(TOOL_DIRS); do rm -rf $$DIR; done
 #rm -@rf $(TAR_DIR)/*.{zip,bz2,xz,gz}
