@@ -1,8 +1,11 @@
 image: Visual Studio 2017
 
 environment:
-#use MINGW64 environment to have native Windows  binaries
-  MSYSTEM: MINGW64 
+  matrix:
+    - TARGET: MINGW64
+      #use MINGW64 environment to have native Windows binaries
+    - TARGET: Cygwin64
+      #use Cygwin64 environment
 #run bash without changing current directory
   CHERE_INVOKING: 1
   
@@ -10,13 +13,11 @@ install:
 #  - C:\msys64\usr\bin\bash --login -c "pacman --needed --noconfirm -S texinfo autoconf automake mingw-w64-x86_64-make mingw-w64-x86_64-gcc"
   
 build_script:
-#run command via bash --login to have all env variables set up
-  - C:\msys64\usr\bin\bash --login -c "echo Build using $(expr $(nproc) + 1) jobs"
-  - C:\msys64\usr\bin\bash --login -c "make -j$(expr $(nproc) + 1)"
+  - "echo Build using $(expr $(nproc) + 1) jobs"
+  - "make -j$(expr $(nproc) + 1)"
   
 on_failure:
-  - ECHO Printing distrib\MinGW64-error.log...
-  - TYPE distrib\MinGW64-error.log
+  - "tail distrib/*64-error.log"
 
 notifications:
   - provider: Email
