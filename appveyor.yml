@@ -2,10 +2,10 @@ image: Visual Studio 2017
 
 environment:
   matrix:
-  - MSYSTEM: MINGW64
-    PATH: C:\msys64\usr\bin\;C:\msys64\bin
   - MSYSTEM: CYGWIN64
     PATH: /usr/bin:/usr/local/bin
+  - MSYSTEM: MINGW64
+    PATH: C:\msys64\usr\bin\;C:\msys64\bin
 #run bash without changing current directory
   CHERE_INVOKING: 1
   
