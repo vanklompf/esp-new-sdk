@@ -2,12 +2,10 @@ image: Visual Studio 2017
 
 environment:
   matrix:
-    - TARGET: MINGW64
-      #use MINGW64 environment to have native Windows binaries
-      PATH: C:\MinGW\bin;
-    - TARGET: Cygwin64
-      #use Cygwin64 environment
-      PATH: C:\Cygwin64\bin;
+  - MSYSTEM: MINGW64
+      PATH: C:\msys64\usr\bin\;C:\msys64\bin
+  - MSYSTEM: CYGWIN64
+      PATH: C:\Cygwin64\usr\bin\;C:\Cygwin64\bin
 #run bash without changing current directory
   CHERE_INVOKING: 1
   
@@ -16,7 +14,7 @@ install:
   
 build_script:
   - "echo Build using $(expr $(nproc) + 1) jobs"
-  - C:\msys64\usr\bin\bash --login -c "make -j$(expr $(nproc) + 1)"
+  - "make -j$(expr $(nproc) + 1)"
   
 on_failure:
   - "tail distrib/*64-error.log"
