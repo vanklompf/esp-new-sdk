@@ -6,7 +6,7 @@
 # Credits to Paul Sokolovsky (@pfalcon) for esp-open-sdk
 # Credits to Ivan Grokhotkov (@igrr) for compiler options (NLX_OPT) and library modifications
 #
-# Last edit: 19.04.2018
+# Last edit: 21.04.2018
 
 #*******************************************
 #************** configuration **************
@@ -182,12 +182,6 @@ LWIP_VERSION = esp-open-lwip
 
 TOP = $(PWD)
 
-SDK = sdk
-SDK_SRC_DIR = $(SDK)
-TOP_SDK = $(TOP)/$(SDK_SRC_DIR)
-SDK_VER = $(SDK_SRC_DIR)_v$(SDK_VERSION)
-SDK_DIR = $(TOP_SDK)/$(SDK_VER)
-
 TOOLCHAIN = $(TOP)/$(TARGET)
 TARGET_DIR = $(TOOLCHAIN)/$(TARGET)
 
@@ -332,6 +326,9 @@ ifeq ($(LWIP_VERSION),lwip2)
     LWIP_TAR_DIR = esp82xx-nonos-linklayer-master
 endif
 
+SDK = sdk
+SDK_DIR = $(SOURCE_DIR)/$(SDK)-$(SDK_VERSION)
+
 CORE = $(GMP) $(MPFR) $(ISL) $(CLOOG) $(MPC) $(EXPAT) $(CURSES) $(BIN) $(GCC) $(NLX) $(HAL) $(SDK)
 CORE_DIRS = $(GMP_DIR) $(MPFR_DIR) $(ISL_DIR) $(CLOOG_DIR) $(MPC_DIR) $(EXPAT_DIR) $(CURSES_DIR) $(BIN_DIR) $(GCC_DIR) $(NLX_DIR) $(HAL_DIR) $(SDK_DIR)
 BUILD_CORE_DIRS = $(BUILD_GMP_DIR) $(BUILD_MPFR_DIR) $(BUILD_ISL_DIR) $(BUILD_CLOOG_DIR) $(BUILD_MPC_DIR) $(BUILD_EXPAT_DIR) $(BUILD_CURSES_DIR) $(BUILD_BIN_DIR) \
@@ -473,8 +470,7 @@ SDK_ZIP = $(SDK_ZIP_$(SDK_VERSION))
 SDK_URL = $(SDK_URL_$(SDK_VERSION))
 SDK_VER = $(SDK_VER_$(SDK_VERSION))
 SDK_TAR = $(TAR_DIR)/$(SDK_VER).zip
-SDK_TAR_DIR = $(SDK_VER)/$(SDK_ZIP)
-
+SDK_TAR_DIR = $(SDK_ZIP)
 
 #*******************************************
 #************** rules section **************
@@ -580,6 +576,12 @@ $(SOURCE_DIR):
 $(TAR_DIR):
 	@$(MKDIR) $(TAR_DIR)
 
+$(DIST_DIR):
+	@$(MKDIR) $(DIST_DIR)
+
+$(SDK_DIR):
+	@$(MKDIR) $(SDK_DIR)
+
 $(COMP_LIB):
 	@$(MKDIR) $(COMP_LIB)
 	@$(MKDIR) $(COMP_LIB)/$(GMP)-$(GMP_VERSION)
@@ -603,9 +605,6 @@ endif
 ifeq ($(USE_GDB),y)
 	@$(MKDIR) $(COMP_LIB)/$(GDB)-$(GDB_VERSION)
 endif
-
-$(DIST_DIR):
-	@$(MKDIR) $(DIST_DIR)
 
 #*** for the '|' token (order-only prerequisite) see: https://www.gnu.org/software/make/manual/html_node/Prerequisite-Types.html
 $(TOOLCHAIN): | $(DIST_DIR) $(SOURCE_DIR) $(TAR_DIR) $(COMP_LIB)
@@ -800,16 +799,21 @@ ifeq ($(USE_DISTRIB),y)
 	@ls $(DIST_DIR)/$(DISTRIB)*
 	@touch $@
 endif
+
 $(SOURCE_DIR)/.$(SDK).loaded:
 	$(call Load_Modul,$(SDK),$(SDK_URL),$(SDK_TAR))
 $(SOURCE_DIR)/.$(SDK).extracted: $(SOURCE_DIR)/.$(SDK).loaded
-	$(call Extract_Modul,$(SDK),$(TOP_SDK)/$(SDK_VER),$(SDK_TAR),$(TOP_SDK)/$(SDK_TAR_DIR))
-    ifneq "$(wildcard $(TOP_SDK)/release_note.txt )" ""
-		-@$(MOVE) $(TOP_SDK)/release_note.txt $(TOP_SDK)/$(SDK_VER)/
-    endif
-    ifneq "$(wildcard $(TOP_SDK)/License )" ""
-		-@$(MOVE) $(TOP_SDK)/License $(TOP_SDK)/$(SDK_VER)/
-    endif
+	@$(call Extract_Modul,$(SDK),$(SDK_DIR),$(SDK_TAR),$(SDK_DIR)/$(SDK_TAR_DIR))
+	@$(MKDIR) $(SDK_DIR)
+	@$(COPY) $(SOURCE_DIR)/$(SDK_TAR_DIR)/* $(SDK_DIR)
+	@$(RMDIR) $(SOURCE_DIR)/$(SDK_TAR_DIR)
+#    ifneq "$(wildcard $(SDK_DIR)/release_note.txt )" ""
+#		-@$(MOVE) $(SDK_DIR)/release_note.txt $(SDK_DIR)/$(SDK_VER)/
+#    endif
+#    ifneq "$(wildcard $(SDK_DIR)/License )" ""
+#		-@$(MOVE) $(SDK_DIR)/License $(SDK_DIR)/$(SDK_VER)/
+#    endif
+	@touch $@
 $(SOURCE_DIR)/.$(SDK).patched: $(SOURCE_DIR)/.$(SDK).extracted
 	@$(MAKE) $(MAKE_OPT) sdk_patch
 	@touch $@
