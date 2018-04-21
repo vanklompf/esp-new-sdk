@@ -10,11 +10,11 @@ environment:
   CHERE_INVOKING: 1
   
 install:
-#  - C:\msys64\usr\bin\bash --login -c "pacman --needed --noconfirm -S texinfo autoconf automake mingw-w64-x86_64-make mingw-w64-x86_64-gcc"
+#  - bash --login -c "pacman --needed --noconfirm -S texinfo autoconf automake mingw-w64-x86_64-make mingw-w64-x86_64-gcc"
   
 build_script:
   - bash --login -c "echo Build using $(expr $(nproc) + 1) jobs"
-  - "make -j3"
+  - bash --login -c "make -j$(expr $(nproc) + 1)"
   
 on_failure:
   - "tail distrib/*64-error.log"
