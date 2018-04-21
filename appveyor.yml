@@ -13,8 +13,8 @@ install:
 #  - C:\msys64\usr\bin\bash --login -c "pacman --needed --noconfirm -S texinfo autoconf automake mingw-w64-x86_64-make mingw-w64-x86_64-gcc"
   
 build_script:
-  - "echo Build using $(expr $(nproc) + 1) jobs"
-  - "make -j$(expr $(nproc) + 1)"
+  - bash --login -c "echo Build using $(expr $(nproc) + 1) jobs"
+  - "make -j3"
   
 on_failure:
   - "tail distrib/*64-error.log"
