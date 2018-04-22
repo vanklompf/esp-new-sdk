@@ -57,6 +57,9 @@ ifeq ($(OS),Windows_NT)
         BUILD := MSYS$(ARCH)
         BUILDPATH := /msys$(ARCH)/usr/bin:$(BUILDPATH)
     endif
+    ifneq (,$(findstring CYGWIN,$(PLATFORM)))
+        BUILD := Cygwin$(ARCH)
+    endif
     ifneq (,$(findstring Cygwin,$(PLATFORM)))
         BUILD := Cygwin$(ARCH)
     endif
