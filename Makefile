@@ -492,10 +492,6 @@ SDK_TAR_DIR = $(SDK_ZIP)
 all:
 	@$(MAKE) $(MAKE_OPT) info-start
 	@$(MAKE) $(MAKE_OPT) info-build 2>>$(ERROR_LOG)
-    ifneq (,$(findstring Cygwin,$(BUILD)))
-		@$(MAKE) $(MAKE_OPT) info-pre-conf 2>>$(ERROR_LOG)
-		@$(MAKE) $(MAKE_OPT) pre-conf-$(GMP) 2>>$(ERROR_LOG)
-    endif
 	@$(MAKE) $(MAKE_OPT) build-bins 2>>$(ERROR_LOG)
 	@$(MAKE) $(MAKE_OPT) build-core 2>>$(ERROR_LOG)
 	@$(MAKE) $(MAKE_OPT) build-tools 2>>$(ERROR_LOG)
@@ -516,10 +512,6 @@ install:
 #*******************************************
 #************* build targets ***************
 #*******************************************
-
-# it seems GMP can not ultimately be configured in parallel
-pre-conf-$(GMP): | $(TOOLCHAIN)
-	$(MAKE) $(MAKE_OPT) $(SOURCE_DIR)/.$(GMP).configured
 
 #**** allow most parallelization in build process
 build: build-$(GMP) build-$(MPFR) build-$(MPC) build-$(BIN) build-$(EXPAT) build-$(CURSES) build-$(CLOOG) build-$(ISL) \
@@ -696,9 +688,6 @@ info-start:
 	$(info Detected: $(BUILD) on $(OS))
 	$(info Path: $(SAFEPATH))
 	$(info Processors: $(NUMBER_OF_PROCESSORS))
-
-info-pre-conf:
-	$(info #### pre-conf-$(GMP)...)
 
 info-build:
 	$(info ##########################)
