@@ -6,7 +6,7 @@
 # Credits to Paul Sokolovsky (@pfalcon) for esp-open-sdk
 # Credits to Ivan Grokhotkov (@igrr) for compiler options (NLX_OPT) and library modifications
 #
-# Last edit: 21.04.2018
+# Last edit: 22.04.2018
 
 #*******************************************
 #************** configuration **************
@@ -493,6 +493,7 @@ all:
 	@$(MAKE) $(MAKE_OPT) info-start
 	@$(MAKE) $(MAKE_OPT) info-build 2>>$(ERROR_LOG)
     ifeq ($(BUILD),Cygwin64)
+		@$(MAKE) $(MAKE_OPT) info-pre-conf 2>>$(ERROR_LOG)
 		@$(MAKE) $(MAKE_OPT) pre-conf-$(GMP)
     endif
 	@$(MAKE) $(MAKE_OPT) build-bins 2>>$(ERROR_LOG)
@@ -695,6 +696,9 @@ info-start:
 	$(info Detected: $(BUILD) on $(OS))
 	$(info Path: $(SAFEPATH))
 	$(info Processors: $(NUMBER_OF_PROCESSORS))
+
+info-pre-conf:
+	$(info #### pre-conf-$(GMP)...)
 
 info-build:
 	$(info ##########################)
