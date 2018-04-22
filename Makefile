@@ -57,7 +57,7 @@ ifeq ($(OS),Windows_NT)
         BUILD := MSYS$(ARCH)
         BUILDPATH := /msys$(ARCH)/usr/bin:$(BUILDPATH)
     endif
-    ifneq (,$(findstring CYGWIN,$(PLATFORM)))
+    ifneq (,$(findstring Cygwin,$(PLATFORM)))
         BUILD := Cygwin$(ARCH)
     endif
 else
@@ -492,9 +492,9 @@ SDK_TAR_DIR = $(SDK_ZIP)
 all:
 	@$(MAKE) $(MAKE_OPT) info-start
 	@$(MAKE) $(MAKE_OPT) info-build 2>>$(ERROR_LOG)
-    ifeq ($(BUILD),Cygwin64)
+    ifneq (,$(findstring Cygwin,$(BUILD)))
 		@$(MAKE) $(MAKE_OPT) info-pre-conf 2>>$(ERROR_LOG)
-		@$(MAKE) $(MAKE_OPT) pre-conf-$(GMP)
+		@$(MAKE) $(MAKE_OPT) pre-conf-$(GMP) 2>>$(ERROR_LOG)
     endif
 	@$(MAKE) $(MAKE_OPT) build-bins 2>>$(ERROR_LOG)
 	@$(MAKE) $(MAKE_OPT) build-core 2>>$(ERROR_LOG)
