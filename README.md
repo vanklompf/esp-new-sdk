@@ -7,9 +7,10 @@ Makefile to build the toolchain and a complete standalone SDK for Espressif ESP8
 It was developed for use under Windows on Cygwin. It should be easy to maintain and configure, without additional files and scripts.
 
 Under Travis-CI it builds successfully on Linux and as well on MacOS64.
+Under AppVeyor  it builds successfully on MinGW64.
 
 Thus it builds successfully on
-- Cygwin
+- Cygwin64
 - MinGW64
 - Linux
 - MacOS64
@@ -40,27 +41,33 @@ To build the complete project use the following command:
 ```bash
   make                  # build all with last versions
 ```
+To reduce the compile time make can build in parallel:
+```bash
+  make -j3              # build with e.g. up to 3 jobs, according to your local machine
+```
+
 If an error occurs during the 'make' process, it can be continued with 'make' (after correcting the error, of course).
 
 To build parts of the project use the following commands:
 ```bash
   make build-gmp        # version 6.1.2  down to 6.0.0a
-  make build-mpfr       # version 3.1.6  down to 3.1.1
-  make build-mpc        # version 1.0.3  down to 1.0.1
+  make build-mpfr       # version 4.0.1  down to 3.1.1
+  make build-mpc        # version 1.1.0  down to 1.0.1
   make build-binutils   # version 2.30   down to 2.26
-  make build-gcc-1      # version 7.2.0  down to 4.8.2
+  make build-gcc-1      # version 7.3.0  down to 4.8.2
   make build-newlib     # version xtensa
   make build-gcc-2
-  make build-gcc-libhal # version lx106-hal
+  make build-libhal # version lx106-hal
   ```
 
 If configured you can build additional libraries with:
 ```bash
-  make build-ncurses    # version 6.0
+  make build-ncurses    # version 6.1    down to 6.0
   make build-isl        # version 0.18   down to 0.14
-  make build-cloog      # version 0.18.1 down to 0.18.4
-  make build-expat      # version 2.1.0
-  make build-gdb        # version 8.0.1  down to 7.5.1
+  make build-cloog      # version 0.18.4 down to 0.18.1
+  make build-expat      # version 2.2.5  down to 2.1.0
+  make build-lwip       # version esp-open-lwip
+  make build-gdb        # version 8.1    down to 7.5.1
   ```
 
 To rebuild one of the above parts it should be enough to:
