@@ -376,6 +376,10 @@ COPY  := cp -R -f
 #QUIET    :=
 #MAKE_OPT :=
 
+ifneq (,$(findstring Cygwin,$(BUILD)))
+	QUIET :=
+endif
+
 # Under MacOS the syntax for mode description is different
 FIND_MODE := /0111
 ifeq ($(PLATFORM),Darwin)
