@@ -17,7 +17,7 @@ build_script:
   - bash --login -c "make -j$(expr $(nproc) + 1)"
   
 on_failure:
-  - "tail distrib/*64-error.log"
+  - "tail -100 distrib/*64-error.log"
 
 notifications:
   - provider: Email
