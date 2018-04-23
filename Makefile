@@ -129,7 +129,7 @@ MPFR_VERSION = 3.1.4
 MPFR_VERSION = 3.1.5
 MPFR_VERSION = 3.1.6
 #MPFR_VERSION = 4.0.0
-MPFR_VERSION = 4.0.1
+#MPFR_VERSION = 4.0.1
 
 MPC_VERSION  = 1.0.1
 MPC_VERSION  = 1.0.2
@@ -399,10 +399,10 @@ ifeq ($(USE_CLOOG),y)
 endif
 GMP_OPT   = --disable-shared --enable-static
 MPFR_OPT  = --disable-shared --enable-static
-MPC_OPT   = --disable-shared --enable-static
+MPC_OPT   = --disable-shared --enable-static $(WITH_GMP) $(WITH_MPFR)
 BUILD_OPT = --enable-werror=no --disable-multilib --disable-nls --disable-shared --disable-threads \
             --with-gnu-as --with-gnu-ld
-BIN_OPT   = $(BUILD_OPT) --with-$(GCC)
+BIN_OPT   = $(BUILD_OPT) --with-$(GCC) $(WITH_GMP) $(WITH_MPFR) $(WITH_MPC) $(WITH_ISL)
 ISL_OPT   = --disable-shared --enable-static $(WITH_GMP_PREFIX)
 CLOOG_OPT = --disable-shared --enable-static $(WITH_GMP_PREFIX) $(WITH_ISL_PREFIX)
 #see: xtensa-lx106-elf-gcc-4.8.2.exe -v
@@ -522,7 +522,7 @@ build: build-$(GMP) build-$(MPFR) build-$(MPC) build-$(BIN) build-$(EXPAT) build
        build-$(GDB) build-$(LWIP) build-sdk-libs
 
 # companion libraries
-build-bins: build-$(GMP) build-$(MPFR) build-$(MPC) build-$(BIN) build-$(EXPAT) build-$(CURSES) build-$(CLOOG) build-$(ISL)
+build-bins: build-$(GMP) build-$(MPFR) build-$(MPC) build-$(ISL) build-$(BIN) build-$(EXPAT) build-$(CURSES) build-$(CLOOG)
 
 # most core functions
 build-core: build-$(GCC)-1 build-$(NLX) build-$(GCC)-2 build-$(HAL)
@@ -732,10 +732,10 @@ endif
 ifeq ($(USE_EXPAT),y)
 	$(info |   EXPAT    $(EXPAT_VERSION))
 endif
-	$(info |   BINUTILS $(BIN_VERSION))
 ifeq ($(USE_ISL),y)
 	$(info |   ISL      $(ISL_VERSION))
 endif
+	$(info |   BINUTILS $(BIN_VERSION))
 ifeq ($(USE_CLOOG),y)
 	$(info |   CLOOG    $(CLOOG_VERSION))
 endif
