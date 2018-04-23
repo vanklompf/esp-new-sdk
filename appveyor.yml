@@ -4,8 +4,10 @@ environment:
   matrix:
   - MSYSTEM: Cygwin64
     PATH: C:\msys64\usr\bin
+    BUILD: Cygwin64
   - MSYSTEM: MINGW64
     PATH: C:\msys64\usr\bin
+    BUILD: MinGW64
 #run bash without changing current directory
   CHERE_INVOKING: 1
   
@@ -17,7 +19,7 @@ build_script:
   - bash --login -c "make -j$(expr $(nproc) + 1)"
   
 on_failure:
-  - "tail -100 distrib/*64-error.log"
+  - "tail -100 distrib/$BUILD-error.log"
 
 notifications:
   - provider: Email
