@@ -19,7 +19,9 @@ build_script:
   - bash --login -c "make -j$(expr $(nproc) + 1)"
   
 on_failure:
-  - bash --login -c "tail -100 distrib/$BUILD*.log"
+  - bash --login -c "tail -n100 distrib/$BUILD*.log"
+on_success:
+  - bash --login -c "tail -n100 distrib/$BUILD*.log"
 
 artifacts:
   - path: 'distrib/*.log'
