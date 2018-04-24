@@ -19,9 +19,14 @@ build_script:
   - bash --login -c "make -j$(expr $(nproc) + 1)"
   
 on_failure:
-  - "tail -100 distrib/$BUILD-error.log"
+  - "tail -100 distrib/$(BUILD)-error.log"
 
-notifications:
+artifacts:
+  - path: 'distrib/*.log'
+    name: test logs
+    type: zip
+
+    notifications:
   - provider: Email
     on_build_success: false
     on_build_failure: false
