@@ -208,7 +208,7 @@ GNU_URL = https://ftp.gnu.org/gnu
 GMP = gmp
 GMP_DIR = $(SOURCE_DIR)/$(GMP)-$(GMP_VERSION)
 # make it easy for gmp-6.0.0a
-ifneq (,$(findstring 6.0.0a,$(NLX_VERSION)))
+ifneq (,$(findstring 6.0.0a,$(GMP_VERSION)))
     GMP_DIR = $(SOURCE_DIR)/$(GMP)-6.0.0
 endif
 BUILD_GMP_DIR = $(GMP_DIR)/$(BUILD_DIR)
