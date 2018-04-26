@@ -376,8 +376,9 @@ COPY  := cp -R -f
 #QUIET    :=
 #MAKE_OPT :=
 
+# GMP config.guess under AppVeyor does not find Cygwin right
 ifneq (,$(findstring Cygwin,$(BUILD)))
-	QUIET :=
+	BUILD_CYGWIN := --build=x86_64-unknown-cygwin
 endif
 
 # Under MacOS the syntax for mode description is different
@@ -945,7 +946,7 @@ $(SOURCE_DIR)/.$(GMP).loaded:
 $(SOURCE_DIR)/.$(GMP).extracted: $(SOURCE_DIR)/.$(GMP).loaded
 	$(call Extract_Modul,$(GMP),$(GMP_DIR),$(GMP_TAR),$@)
 $(SOURCE_DIR)/.$(GMP).configured: $(SOURCE_DIR)/.$(GMP).extracted
-	$(call Config_Modul,$(GMP),$(BUILD_GMP_DIR),--prefix=$(COMP_LIB)/$(GMP)-$(GMP_VERSION),$(GMP_OPT))
+	$(call Config_Modul,$(GMP),$(BUILD_GMP_DIR),$(BUILD_CYGWIN) --prefix=$(COMP_LIB)/$(GMP)-$(GMP_VERSION),$(GMP_OPT))
 $(SOURCE_DIR)/.$(GMP).builded: $(SOURCE_DIR)/.$(GMP).configured
 	$(call Build_Modul,$(GMP),$(BUILD_GMP_DIR))
 $(SOURCE_DIR)/.$(GMP).installed: $(SOURCE_DIR)/.$(GMP).builded
