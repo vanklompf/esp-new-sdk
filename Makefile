@@ -923,7 +923,7 @@ define Install_Modul
 	@echo "##########################"
 	@#### "Install: Path=$(SAFEPATH); $(MAKE) $(MAKE_OPT) $3=$(INST_OPT) -C $2"
 	+@PATH=$(SAFEPATH); $(MAKE) $(MAKE_OPT) $3 -C $2 $(QUIET)
-	$(OUTPUT_DATE)
+	@$(OUTPUT_DATE)
 	@touch $(SOURCE_DIR)/.$1.installed
 endef
 

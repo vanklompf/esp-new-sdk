@@ -2,12 +2,12 @@ image: Visual Studio 2017
 
 environment:
   matrix:
-  - MSYSTEM: Cygwin64
-    PATH: C:\msys64\usr\bin
-    BUILD: Cygwin64
-#  - MSYSTEM: MINGW64
+#  - MSYSTEM: Cygwin64
 #    PATH: C:\msys64\usr\bin
-#    BUILD: MinGW64
+#    BUILD: Cygwin64
+  - MSYSTEM: MINGW64
+    PATH: C:\msys64\usr\bin
+    BUILD: MinGW64
 #run bash without changing current directory
   CHERE_INVOKING: 1
   
@@ -16,8 +16,7 @@ install:
   
 build_script:
   - bash --login -c "echo Build using $(expr $(nproc) + 1) jobs"
-#  - bash --login -c "make -j$(expr $(nproc) + 1)"
-  - bash --login -c "make build-gmp"
+  - bash --login -c "make -j$(expr $(nproc) + 1)"
   
 on_failure:
   - bash --login -c "tail -n100 distrib/$BUILD*.log"
