@@ -21,7 +21,7 @@ build_script:
 # so call make from AppVeyor with parameter, for example:
 # make BUILD_CYGWIN=--build=x86_64-unknown-cygwin
   - bash --login -c "echo Build using $(expr $(nproc) + 1) jobs"
-  - bash --login -c "make -j$(expr $(nproc) + 1) $BUILD_CYGWIN"
+  - bash --login -c "make -j$(expr $(nproc) + 1) BUILD_CYGWIN=$BUILD_CYGWIN"
 
 on_failure:
   - bash --login -c "tail -n100 distrib/$BUILD*.log"
