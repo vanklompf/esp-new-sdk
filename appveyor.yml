@@ -2,29 +2,32 @@ image: Visual Studio 2017
 
 environment:
   matrix:
-#  - MSYSTEM: Cygwin64
-#    PATH: C:\msys64\usr\bin
-#    BUILD: Cygwin64
+  - MSYSTEM: Cygwin64
+    PATH: C:\msys64\usr\bin
+    BUILD: Cygwin64
+    BUILD_CYGWIN: "--build=x86_64-unknown-cygwin"
   - MSYSTEM: MINGW64
     PATH: C:\msys64\usr\bin
     BUILD: MinGW64
+    BUILD_CYGWIN:
 #run bash without changing current directory
   CHERE_INVOKING: 1
-  
+
 install:
 #  - bash --login -c "pacman --needed --noconfirm -S texinfo autoconf automake mingw-w64-x86_64-make mingw-w64-x86_64-gcc"
-  
+
 build_script:
+# GMP config.guess under AppVeyor does not find Cygwin right
+# so call make from AppVeyor with parameter, for example:
+# make BUILD_CYGWIN=--build=x86_64-unknown-cygwin
   - bash --login -c "echo Build using $(expr $(nproc) + 1) jobs"
-  - bash --login -c "make -j$(expr $(nproc) + 1)"
-  
+  - bash --login -c "make -j$(expr $(nproc) + 1) $BUILD_CYGWIN"
+
 on_failure:
-  - bash --login -c "tail -n100 distrib/$BUILD*.log"
-on_success:
   - bash --login -c "tail -n100 distrib/$BUILD*.log"
 
 artifacts:
-  - path: 'distrib/*.log'
+  - path: 'distrib/*'
     name: test logs
     type: zip
 

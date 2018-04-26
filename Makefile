@@ -6,11 +6,15 @@
 # Credits to Paul Sokolovsky (@pfalcon) for esp-open-sdk
 # Credits to Ivan Grokhotkov (@igrr) for compiler options (NLX_OPT) and library modifications
 #
-# Last edit: 22.04.2018
+# Last edit: 27.04.2018
 
 #*******************************************
 #************** configuration **************
 #*******************************************
+
+# GMP config.guess under AppVeyor does not find Cygwin right
+# so call make from AppVeyor with parameter, for example:
+# make BUILD_CYGWIN=--build=x86_64-unknown-cygwin
 
 # the standalone version is used only
 STANDALONE = y
@@ -375,11 +379,6 @@ COPY  := cp -R -f
 # for easy debugging
 #QUIET    :=
 #MAKE_OPT :=
-
-# GMP config.guess under AppVeyor does not find Cygwin right
-ifneq (,$(findstring Cygwin,$(BUILD)))
-	BUILD_CYGWIN := --build=x86_64-unknown-cygwin
-endif
 
 # Under MacOS the syntax for mode description is different
 FIND_MODE := /0111
