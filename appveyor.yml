@@ -12,7 +12,7 @@ environment:
   CHERE_INVOKING: 1
 
 build_script:
-  - bash --login -c "make -j$(expr $(nproc) + 1)"
+  - bash --login -c "make -j$(expr $(nproc))"
   - bash --login -c "cp distrib/*xtensa-lx106-elf.tar.gz ."
 
 on_failure:
