@@ -492,14 +492,13 @@ SDK_TAR_DIR = $(SDK_ZIP)
 #************** rules section **************
 #*******************************************
 
-.PHONY: build get-tars
+.PHONY: build build-tools get-tars
 .PHONY: info-start info-build info-tools info inst-info info-distrib
 .PHONY: distrib install strip compress clean clean-build clean-sdk
-.PHONY: build-bins build-core build-tools
 .PHONY: build-$(GMP) build-$(MPFR) build-$(MPC) build-$(BIN) 
 .PHONY: build-$(EXPAT) build-$(CURSES) build-$(CLOOG) build-$(ISL)
 .PHONY: build-$(GCC)-1 build-$(NLX) build-$(GCC)-2 build-$(GDB)
-.PHONY: build-$(HAL) build-sdk-libs build-$(LWIP)
+.PHONY: build-$(HAL) build-$(SDK) build-sdk-libs build-$(LWIP)
 
 #*******************************************
 #************* Build Toolchain *************
@@ -508,8 +507,7 @@ SDK_TAR_DIR = $(SDK_ZIP)
 all:
 	@$(MAKE) $(MAKE_OPT) info-start
 	@$(MAKE) $(MAKE_OPT) info-build 2>>$(ERROR_LOG)
-	@$(MAKE) $(MAKE_OPT) build-bins 2>>$(ERROR_LOG)
-	@$(MAKE) $(MAKE_OPT) build-core 2>>$(ERROR_LOG)
+	@$(MAKE) $(MAKE_OPT) build 2>>$(ERROR_LOG)
 	@$(MAKE) $(MAKE_OPT) build-tools 2>>$(ERROR_LOG)
 	@$(MAKE) $(MAKE_OPT) strip 2>>$(ERROR_LOG)
 	@$(MAKE) $(MAKE_OPT) compress 2>>$(ERROR_LOG)
@@ -531,20 +529,11 @@ install:
 
 #**** allow most parallelization in build process
 build: build-$(GMP) build-$(MPFR) build-$(MPC) build-$(BIN) build-$(EXPAT) build-$(CURSES) build-$(CLOOG) build-$(ISL) \
-       build-$(GCC)-1 build-$(NLX) build-$(GCC)-2 build-$(HAL) \
-       build-$(GDB) build-$(LWIP) build-sdk-libs
-
-# companion libraries
-build-bins: build-$(GMP) build-$(MPFR) build-$(MPC) build-$(ISL) build-$(BIN) build-$(EXPAT) build-$(CURSES) build-$(CLOOG)
-
-# most core functions
-build-core: build-$(GCC)-1 build-$(NLX) build-$(GCC)-2 build-$(HAL)
-
-# additional tools
-build-tools: build-$(GDB) build-$(LWIP) build-sdk-libs
+       build-$(GCC)-1 build-$(NLX) build-$(GCC)-2 build-$(HAL)
+# remaining parts and additional tools
+build-tools: build-$(SDK) build-$(LWIP) build-sdk-libs build-$(GDB)
 
 #**** download all tar-files into tarballs
-
 get-tars: $(TAR_DIR)
 	@for TAR in $(CORE); do $(MAKE) $(SOURCE_DIR)/.$$TAR.loaded $(QUIET); done
 	@for TAR in $(TOOLS); do $(MAKE) get-$$TAR $(QUIET); done
@@ -621,6 +610,7 @@ endif
 $(TOOLCHAIN): | $(DIST_DIR) $(SOURCE_DIR) $(TAR_DIR) $(COMP_LIB)
 	@git config --global core.autocrlf false
 	@$(MKDIR) $(TOOLCHAIN)
+	@$(MKDIR) $(TARGET_DIR)
 
 #*******************************************
 #************* single targets **************
@@ -634,7 +624,7 @@ build-$(GCC)-1:  $(SOURCE_DIR)/.$(GCC)-pass-1.installed | $(TOOLCHAIN)
 build-$(NLX):    $(SOURCE_DIR)/.$(NLX).installed | $(TOOLCHAIN)
 build-$(GCC)-2:  $(SOURCE_DIR)/.$(GCC)-pass-2.installed | $(TOOLCHAIN)
 build-$(HAL):    $(SOURCE_DIR)/.$(HAL).installed | $(TOOLCHAIN)
-build-sdk-libs:  $(SOURCE_DIR)/.$(SDK).installed $(SOURCE_DIR)/.sdk-libs.installed | $(TOOLCHAIN)
+build-sdk-libs:  $(SOURCE_DIR)/.sdk-libs.installed | $(TOOLCHAIN)
 
 ifeq ($(USE_CURSES),y)
 build-$(CURSES): $(SOURCE_DIR)/.$(CURSES).installed  | $(TOOLCHAIN)
@@ -846,9 +836,8 @@ endif
 $(SOURCE_DIR)/.sdk-libs.installed: $(SOURCE_DIR)/.$(SDK).installed
 	$(call Info_Modul,Modify,Libs)
 	@$(MAKE) $(MAKE_OPT) libc
-	$(TOOLCHAIN)/bin/$(XOCP) --rename-section .text=.irom0.text \
+	@$(TOOLCHAIN)/bin/$(XOCP) --rename-section .text=.irom0.text \
 		--rename-section .literal=.irom0.literal $(TARGET_DIR)/lib/libc.a $(TARGET_DIR)/lib/libcirom.a;
-	#@touch $@
 	$(info #### libcirom.a...    ####)
 	@$(MAKE) $(MAKE_OPT) libmain
 	@$(MAKE) $(MAKE_OPT) libgcc
@@ -858,7 +847,7 @@ $(SOURCE_DIR)/.sdk-libs.installed: $(SOURCE_DIR)/.$(SDK).installed
 libc_objs = lib_a-bzero.o lib_a-memcmp.o lib_a-memcpy.o lib_a-memmove.o lib_a-memset.o lib_a-rand.o \
 		lib_a-strcmp.o lib_a-strcpy.o lib_a-strlen.o lib_a-strncmp.o lib_a-strncpy.o lib_a-strstr.o
 libc: $(TARGET_DIR)/lib/libc.a | $(TOOLCHAIN) $(NLX_DIR)
-	$(TOOLCHAIN)/bin/$(XAR) $(AR_DEL) $(TARGET_DIR)/lib/$@.a $(libc_objs)
+	@$(TOOLCHAIN)/bin/$(XAR) $(AR_DEL) $(TARGET_DIR)/lib/$@.a $(libc_objs)
 	$(info #### libc.a ...       ####)
 
 libmain_objs = mem_manager.o time.o
