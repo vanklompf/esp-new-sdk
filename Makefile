@@ -624,6 +624,7 @@ build-$(GCC)-1:  $(SOURCE_DIR)/.$(GCC)-pass-1.installed | $(TOOLCHAIN)
 build-$(NLX):    $(SOURCE_DIR)/.$(NLX).installed | $(TOOLCHAIN)
 build-$(GCC)-2:  $(SOURCE_DIR)/.$(GCC)-pass-2.installed | $(TOOLCHAIN)
 build-$(HAL):    $(SOURCE_DIR)/.$(HAL).installed | $(TOOLCHAIN)
+build-$(SDK):    $(SOURCE_DIR)/.$(SDK).installed | $(TOOLCHAIN)
 build-sdk-libs:  $(SOURCE_DIR)/.sdk-libs.installed | $(TOOLCHAIN)
 
 ifeq ($(USE_CURSES),y)
