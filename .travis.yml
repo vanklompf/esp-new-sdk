@@ -25,7 +25,7 @@ jobs:
         - "cd automake-1.15; ./configure -q --prefix=/usr && make V=0; sudo make V=0 install; cd ..; rm -fR automake-1.15"
         - "echo -e \"travis_fold:end:install-automake\""
         - "cd $TRAVIS_BUILD_DIR"
-        - "travis_wait 45 make -j2"
+        - "travis_wait 45 make -j4"
       after_script:
         - "tail distrib/Linux64-error.log"
     - os: osx
