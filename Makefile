@@ -6,15 +6,11 @@
 # Credits to Paul Sokolovsky (@pfalcon) for esp-open-sdk
 # Credits to Ivan Grokhotkov (@igrr) for compiler options (NLX_OPT) and library modifications
 #
-# Last edit: 27.04.2018
+# Last edit: 03.05.2018
 
 #*******************************************
 #************** configuration **************
 #*******************************************
-
-# GMP config.guess under AppVeyor does not find Cygwin right
-# so call make from AppVeyor with parameter, for example:
-# make BUILD_CYGWIN=--build=x86_64-unknown-cygwin
 
 # the standalone version is used only
 STANDALONE = y
@@ -50,11 +46,11 @@ endif
 BUILD := $(PLATFORM)
 ifeq ($(OS),Windows_NT)
     ifneq (,$(findstring MINGW32,$(PLATFORM)))
-        BUILD := MinGW$(ARCH)
+        BUILD := Mingw$(ARCH)
         BUILDPATH := /mingw$(ARCH)/bin:$(BUILDPATH)
     endif
     ifneq (,$(findstring MINGW64,$(PLATFORM)))
-        BUILD := MinGW$(ARCH)
+        BUILD := Mingw$(ARCH)
         BUILDPATH := /mingw$(ARCH)/bin:$(BUILDPATH)
     endif
     ifneq (,$(findstring MSYS,$(PLATFORM)))
@@ -402,6 +398,11 @@ ifeq ($(USE_CLOOG),y)
 	WITH_CLOOG= --with-$(CLOOG)=$(COMP_LIB)/$(CLOOG)-$(CLOOG_VERSION)
 endif
 GMP_OPT   = --disable-shared --enable-static
+# Cygwin
+GMP_CONF  =
+ifneq (,$(findstring Cygwin,$(BUILD)))
+    GMP_CONF = --build=x86_64-unknown-cygwin
+endif
 MPFR_OPT  = --disable-shared --enable-static
 MPC_OPT   = --disable-shared --enable-static $(WITH_GMP) $(WITH_MPFR)
 BUILD_OPT = --enable-werror=no --disable-multilib --disable-nls --disable-shared --disable-threads \
@@ -428,6 +429,14 @@ NLX_OPT1  = CROSS_CFLAGS="-DSIGNAL_PROVIDED -DABORT_PROVIDED -DMALLOC_PROVIDED"
 
 CURSES_OPT = --enable-symlinks --without-manpages --without-tests \
               --without-cxx --without-cxx-binding --without-ada
+CURSES_CONF  =
+# Mingw
+ifneq (,$(findstring Mingw,$(BUILD)))
+    CURSES_OPT = --enable-symlinks --without-manpages --without-tests \
+                 --without-cxx --without-cxx-binding --without-ada \
+                 --enable-term-driver --enable-sp-funcs
+    CURSES_CONF = --build=x86_64-pc-mingw$(ARCH)
+endif
 
 EXPAT_OPT =
 HAL_OPT   =
@@ -933,7 +942,7 @@ $(SOURCE_DIR)/.$(CURSES).loaded:
 $(SOURCE_DIR)/.$(CURSES).extracted: $(SOURCE_DIR)/.$(CURSES).loaded
 	$(call Extract_Modul,$(CURSES),$(CURSES_DIR),$(CURSES_TAR),$@)
 $(SOURCE_DIR)/.$(CURSES).configured: $(SOURCE_DIR)/.$(CURSES).extracted
-	$(call Config_Modul,$(CURSES),$(BUILD_CURSES_DIR),--prefix=$(COMP_LIB)/$(CURSES)-$(CURSES_VERSION),$(CURSES_OPT))
+	$(call Config_Modul,$(CURSES),$(BUILD_CURSES_DIR),$(CURSES_CONF) --prefix=$(COMP_LIB)/$(CURSES)-$(CURSES_VERSION),$(CURSES_OPT))
 $(SOURCE_DIR)/.$(CURSES).builded: $(SOURCE_DIR)/.$(CURSES).configured
 	$(call Build_Modul,$(CURSES),$(BUILD_CURSES_DIR))
 $(SOURCE_DIR)/.$(CURSES).installed: $(SOURCE_DIR)/.$(CURSES).builded
@@ -945,7 +954,7 @@ $(SOURCE_DIR)/.$(GMP).loaded:
 $(SOURCE_DIR)/.$(GMP).extracted: $(SOURCE_DIR)/.$(GMP).loaded
 	$(call Extract_Modul,$(GMP),$(GMP_DIR),$(GMP_TAR),$@)
 $(SOURCE_DIR)/.$(GMP).configured: $(SOURCE_DIR)/.$(GMP).extracted
-	$(call Config_Modul,$(GMP),$(BUILD_GMP_DIR),$(BUILD_CYGWIN) --prefix=$(COMP_LIB)/$(GMP)-$(GMP_VERSION),$(GMP_OPT))
+	$(call Config_Modul,$(GMP),$(BUILD_GMP_DIR),$(GMP_CONF) --prefix=$(COMP_LIB)/$(GMP)-$(GMP_VERSION),$(GMP_OPT))
 $(SOURCE_DIR)/.$(GMP).builded: $(SOURCE_DIR)/.$(GMP).configured
 	$(call Build_Modul,$(GMP),$(BUILD_GMP_DIR))
 $(SOURCE_DIR)/.$(GMP).installed: $(SOURCE_DIR)/.$(GMP).builded
